@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"entry/tcp/util"
 	web "entry/web/common"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,7 +27,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "ok")
 }
 
-// 测试
+// Hello 测试
 func Hello(w http.ResponseWriter, r *http.Request) {
 	var answer = fmt.Sprintf("{\"status\":\"ok\"， \"data\":\"hello world\"}")
 	w.Write([]byte(answer))
@@ -42,6 +42,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		fmt.Println("username:", r.Form["username"])
 		fmt.Println("password:", r.Form["password"])
+
+		// TODO 生成sessionId，存在cookie中
+		cookie := http.Cookie{
+			Name:     web.CookieSessionKey,
+			Value:    util.GenerateSessionId(),
+			Path:     "/",
+			Expires:  time.Now().Add(time.Hour * 24),
+			HttpOnly: false,
+		}
+		http.SetCookie(w, &cookie)
 		fmt.Fprintf(w, "ok")
 	}
 }
@@ -67,18 +77,28 @@ func UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == web.Post {
 		r.ParseForm()
 		uploadFile, header, err := r.FormFile("profile_picture")
-		handleError(err, w)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
 		if !(strings.HasSuffix(header.Filename, ".jpg") || strings.HasSuffix(header.Filename, ".png") || strings.HasSuffix(header.Filename, ".jpeg")) {
-			handleError(errors.New("请上传jpg/png/jpeg格式文件"), w)
+			w.Write([]byte("请上传jpg/png/jpeg格式文件"))
+			return
 		}
 		avatarName := fmt.Sprintf("%d-%s", time.Now().Unix(), header.Filename)
 		// TODO avatarName 存入数据库
 		defer uploadFile.Close()
 		openFile, err := os.OpenFile(web.AvatarPath + avatarName, os.O_WRONLY | os.O_CREATE, 0777)
-		handleError(err, w)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
 		defer openFile.Close()
 		_, err = io.Copy(openFile, uploadFile)
-		handleError(err, w)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+			return
+		}
 		log.Println("用户上传头像: ", avatarName)
 		w.Write([]byte("ok"))
 	}
@@ -88,17 +108,15 @@ func UploadAvatar(w http.ResponseWriter, r *http.Request) {
 func ShowAvatar(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(r.URL.Path, "/avatar/")
 	file, err := os.Open(web.AvatarPath + path)
-	handleError(err, w)
-	defer file.Close()
-	buf, err := ioutil.ReadAll(file)
-	handleError(err, w)
-	w.Write(buf)
-}
-
-// 错误处理
-func handleError(err error, w http.ResponseWriter) {
 	if err != nil {
 		w.Write([]byte(err.Error()))
 		return
 	}
+	defer file.Close()
+	buf, err := ioutil.ReadAll(file)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		return
+	}
+	w.Write(buf)
 }

@@ -12,4 +12,5 @@ const (
 	Get        = "GET"
 	Post       = "POST"
 	AvatarPath = "./public/avatar/"
+	CookieSessionKey = "sessionId"
 )
