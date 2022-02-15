@@ -9,7 +9,7 @@ var (
 )
 
 const (
-	Get        = "get"
-	Post       = "post"
+	Get        = "GET"
+	Post       = "POST"
 	AvatarPath = "./public/avatar/"
 )

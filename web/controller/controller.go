@@ -2,10 +2,16 @@ package controller
 
 import (
 	web "entry/web/common"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"text/template"
+	"time"
 )
 
 // @Author Chen Zikang
@@ -27,10 +33,10 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(answer))
 }
 
-// 登录
+// Login 用户登录
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == web.Get {
-		t, _ := template.ParseFiles("./public/login.gtpl")
+		t, _ := template.ParseFiles("./public/template/login.gtpl")
 		t.Execute(w, nil)
 	} else if r.Method == web.Post {
 		r.ParseForm()
@@ -40,10 +46,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 注册
+// Register 用户注册
 func Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method == web.Get {
-		t, _ := template.ParseFiles("./public/register.gtpl")
+		t, _ := template.ParseFiles("./public/template/register.gtpl")
 		t.Execute(w, nil)
 	} else if r.Method == web.Post {
 		r.ParseForm()
@@ -53,26 +59,46 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 上传头像
+// UploadAvatar 上传头像
 func UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	if r.Method == web.Get {
-		t, _ := template.ParseFiles("./public/profile.gtpl")
+		t, _ := template.ParseFiles("./public/template/profile.gtpl")
 		t.Execute(w, nil)
 	} else if r.Method == web.Post {
 		r.ParseForm()
-		//file, header, err := r.FormFile("profile_picture")
-
+		uploadFile, header, err := r.FormFile("profile_picture")
+		handleError(err, w)
+		if !(strings.HasSuffix(header.Filename, ".jpg") || strings.HasSuffix(header.Filename, ".png") || strings.HasSuffix(header.Filename, ".jpeg")) {
+			handleError(errors.New("请上传jpg/png/jpeg格式文件"), w)
+		}
+		avatarName := fmt.Sprintf("%d-%s", time.Now().Unix(), header.Filename)
+		// TODO avatarName 存入数据库
+		defer uploadFile.Close()
+		openFile, err := os.OpenFile(web.AvatarPath + avatarName, os.O_WRONLY | os.O_CREATE, 0777)
+		handleError(err, w)
+		defer openFile.Close()
+		_, err = io.Copy(openFile, uploadFile)
+		handleError(err, w)
+		log.Println("用户上传头像: ", avatarName)
+		w.Write([]byte("ok"))
 	}
 }
 
-// 显示头像
+// ShowAvatar 显示头像
 func ShowAvatar(w http.ResponseWriter, r *http.Request) {
-
+	path := strings.Trim(r.URL.Path, "/avatar/")
+	file, err := os.Open(web.AvatarPath + path)
+	handleError(err, w)
+	defer file.Close()
+	buf, err := ioutil.ReadAll(file)
+	handleError(err, w)
+	w.Write(buf)
 }
 
 // 错误处理
 func handleError(err error, w http.ResponseWriter) {
 	if err != nil {
 		w.Write([]byte(err.Error()))
+		return
 	}
 }
