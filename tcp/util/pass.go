@@ -19,8 +19,10 @@ func EncryptPass(password string) (string, error) {
 	return string(bytes), nil
 }
 
-// CheckPass 校验
-func CheckPass(formPass string, dbPass string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(formPass), []byte(dbPass))
+// VerifyPass 校验
+// password 用户输入密码
+// hashedPassword 数据库存储密码
+func VerifyPass(password string, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
 }

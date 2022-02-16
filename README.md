@@ -6,11 +6,11 @@
 
 
 ```shell
-$ mkdir -p /Users/zikang.chen/Docker/mysql/data /Users/zikang.chen/Docker/mysql/conf
+$ mkdir -p /Users/zikang.chen/Docker/mysql/data /Users/zikang.chen/Docker/mysql/doc
 $ docker run --name mysql -d -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=KAG1823 mysql:8.0.20
-$ docker cp mysql:/etc/mysql/my.cnf /Users/zikang.chen/Docker/mysql/conf
-$ vim /Users/zikang.chen/Docker/mysql/conf/my.cnf
+$ docker cp mysql:/etc/mysql/my.cnf /Users/zikang.chen/Docker/mysql/doc
+$ vim /Users/zikang.chen/Docker/mysql/doc/my.cnf
 # ADD
 [mysqld]
 character-set-server=utf8
@@ -23,7 +23,7 @@ $ docker stop mysql && docker rm mysql
 $ docker run --name mysql \
 -d -p 3306:3306  \
 -e MYSQL_ROOT_PASSWORD=KAG1823 \
--v /Users/zikang.chen/Docker/mysql/conf/my.cnf:/etc/mysql/my.cnf \
+-v /Users/zikang.chen/Docker/mysql/doc/my.cnf:/etc/mysql/my.cnf \
 -v /Users/zikang.chen/Docker/mysql/data:/var/lib/mysql \
 --restart=on-failure:3 \
 mysql:8.0.20
@@ -39,10 +39,10 @@ $ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KAG1823';
 
 
 ```shell
-$ mkdir -p /Users/zikang.chen/Docker/redis/data /Users/zikang.chen/Docker/redis/conf
-$ cd /Users/zikang.chen/Docker/redis/conf
-$ touch redis.conf
-$ cat << EOF >>/Users/zikang.chen/Docker/redis/conf/redis.conf
+$ mkdir -p /Users/zikang.chen/Docker/redis/data /Users/zikang.chen/Docker/redis/doc
+$ cd /Users/zikang.chen/Docker/redis/doc
+$ touch redis.doc
+$ cat << EOF >>/Users/zikang.chen/Docker/redis/doc/redis.doc
 port 6379
 #bind 0.0.0.0
 daemonize no
@@ -72,7 +72,7 @@ EOF
 
 $ docker run -d -p 6379:6379 --name redis \
 -v /Users/zikang.chen/Docker/redis/data:/data \
--v /Users/zikang.chen/Docker/redis/conf/redis.conf:/etc/redis/redis.conf \
+-v /Users/zikang.chen/Docker/redis/doc/redis.doc:/etc/redis/redis.doc \
 redis:6.2.6 \
 --requirepass "KAG1823" 
 ```

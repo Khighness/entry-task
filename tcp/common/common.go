@@ -8,3 +8,11 @@ package common
 const (
 	SessionIdBytes = 16
 )
+
+// SuccessCode 成功状态码
+// ErrorCode   失败状态码
+const (
+	SuccessCode = 0
+	ErrorCode   = 1
+)
+

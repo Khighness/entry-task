@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+option go_package = "./pb";
+
+service UserService {
+  rpc Register (RegisterRequest) returns (RegisterResponse) { }
+  rpc Login (LoginRequest) returns (LoginResponse) { }
+  rpc GetProfile (GetProfileRequest) returns (GetProfileResponse) {}
+  rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse) {}
+  rpc UpdateProfile (UpdateProfileRequest) returns (UpdateProfileResponse) {}
+}
+
+message User {
+  int64 id = 1;
+  string username = 2;
+  string profile_picture = 4;
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterResponse {
+  int32 code = 1;
+  string msg = 2;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  int32 code = 1;
+  string msg = 2;
+  string session_id = 3;
+  User user = 5;
+}
+
+message GetProfileRequest {
+  int32 id = 1;
+}
+
+message GetProfileResponse {
+  int32 code = 1;
+  string msg = 2;
+  User user = 3;
+}
+
+message CheckTokenRequest {
+  string session_id = 1;
+}
+
+message CheckTokenResponse {
+  int32 code = 1;
+  string msg = 2;
+  int32 user_id = 3;
+}
+
+message UpdateProfileRequest {
+  int64 id = 1;
+  string username = 2;
+  string profile_picture = 4;
+}
+
+message UpdateProfileResponse {
+  int32 code = 1;
+  string msg = 2;
+}
