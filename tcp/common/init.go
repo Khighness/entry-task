@@ -13,7 +13,7 @@ import (
 
 // Load 初始化
 func Load() {
-	file, err := ini.Load("./conf/conf.ini")
+	file, err := ini.Load("./tcp/conf/conf.ini")
 	if err != nil {
 		log.Println("Load config file error, please check file path")
 		panic(err)

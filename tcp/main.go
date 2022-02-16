@@ -1,8 +1,8 @@
 package main
 
 import (
+	"entry/tcp/cache"
 	"entry/tcp/common"
-	"entry/tcp/util"
 	"fmt"
 )
 
@@ -12,10 +12,7 @@ import (
 
 func main() {
 	common.Load()
-	util.CheckPassword("12ka.")
-	fmt.Println(util.PassLevelD)
-	fmt.Println(util.PassLevelC)
-	fmt.Println(util.PassLevelB)
-	fmt.Println(util.PassLevelA)
-	fmt.Println(util.PassLevelS)
+	//cache.RedisClient.HSet("k", "id", "1")
+	//cache.RedisClient.Expire("k", 3 * time.Second)
+	fmt.Println(cache.RedisClient.HGet("k", "id").Int())
 }

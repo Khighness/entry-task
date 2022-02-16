@@ -5,8 +5,8 @@ option go_package = "./pb";
 service UserService {
   rpc Register (RegisterRequest) returns (RegisterResponse) { }
   rpc Login (LoginRequest) returns (LoginResponse) { }
-  rpc GetProfile (GetProfileRequest) returns (GetProfileResponse) {}
   rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse) {}
+  rpc GetProfile (GetProfileRequest) returns (GetProfileResponse) {}
   rpc UpdateProfile (UpdateProfileRequest) returns (UpdateProfileResponse) {}
 }
 
@@ -38,8 +38,17 @@ message LoginResponse {
   User user = 5;
 }
 
+message CheckTokenRequest {
+  string session_id = 1;
+}
+
+message CheckTokenResponse {
+  int32 code = 1;
+  string msg = 2;
+}
+
 message GetProfileRequest {
-  int32 id = 1;
+  string session_id = 1;
 }
 
 message GetProfileResponse {
@@ -48,18 +57,8 @@ message GetProfileResponse {
   User user = 3;
 }
 
-message CheckTokenRequest {
-  string session_id = 1;
-}
-
-message CheckTokenResponse {
-  int32 code = 1;
-  string msg = 2;
-  int32 user_id = 3;
-}
-
 message UpdateProfileRequest {
-  int64 id = 1;
+  string session_id = 1;
   string username = 2;
   string profile_picture = 4;
 }

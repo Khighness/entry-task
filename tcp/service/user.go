@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"entry/pb"
+	"entry/tcp/cache"
 	"entry/tcp/common"
 	"entry/tcp/mapper"
 	"entry/tcp/util"
@@ -11,70 +12,6 @@ import (
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
-
-//type User interface {
-//	Register()
-//}
-//
-//type UserDetail struct {
-//	Id             int    `json:"id"`
-//	Username       string `json:"username"`
-//	Password       string `json:"password"`
-//	ProfilePicture string `json:"profile_picture"`
-//}
-//
-//type UserBase struct {
-//	Username string `json:"username"`
-//	Password string `json:"password"`
-//}
-//
-//type UserInfo struct {
-//	Id             int    `json:"id"`
-//	Username       string `json:"username"`
-//	ProfilePicture string `json:"profile_picture"`
-//}
-//
-//type UserAvatar struct {
-//	Id             int    `json:"id"`
-//	ProfilePicture string `json:"profile_picture"`
-//}
-//
-//// Register 用户注册
-//func (user *UserBase) Register() {
-//	encrypt, err1 := util.EncryptPass(user.Password)
-//	if err1 != nil {
-//		return
-//	}
-//	res, err2 := model.DB.Exec("INSERT INTO user(username, password) VALUES(?, ?)", user.Username, encrypt)
-//	if err2 != nil {
-//		return
-//	}
-//	affected, err3 := res.RowsAffected()
-//	if err3 != nil {
-//		return
-//	}
-//	fmt.Println(affected)
-//}
-//
-//// Login 用户登录
-//func (user *UserBase) Login() {
-//
-//}
-//
-//// UpdateInfo 用户修改信息
-//func UpdateInfo() {
-//
-//}
-//
-//// UploadAvatar 用户上传头像
-//func UploadAvatar() {
-//
-//}
-//
-//// GetList 查询所有用户
-//func GetList() {
-//
-//}
 
 type server struct{}
 
@@ -96,6 +33,18 @@ func (s *server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 		}, nil
 	}
 
+	// 检查用户名的唯一性
+	exist, err := mapper.CheckUserUsernameExist(user.Username)
+	if err != nil {
+		return nil, err
+	}
+	if exist {
+		return &pb.RegisterResponse{
+			Code: common.ErrorCode,
+			Msg:  "该用户名已被其他用户使用",
+		}, nil
+	}
+
 	// BCR加密，计算hash
 	var hashedPassword string
 	hashedPassword, err = util.EncryptPass(user.Password)
@@ -106,10 +55,7 @@ func (s *server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 	// 保存到数据库
 	err = mapper.SaveUser(user.Username, hashedPassword)
 	if err != nil {
-		return &pb.RegisterResponse{
-			Code: common.ErrorCode,
-			Msg:  "注册失败",
-		}, nil
+		return nil, err
 	}
 	return &pb.RegisterResponse{
 		Code: common.SuccessCode,
@@ -117,15 +63,56 @@ func (s *server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 	}, nil
 }
 
-func (s *server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
-	return nil, nil
-}
+func (s *server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginResponse, error) {
+	// 校验用户名是否存在
+	id, hashedPassword, profilePicture, err := mapper.QueryUserByUsername(user.Username)
+	if err != nil {
+		return &pb.LoginResponse{
+			Code: common.ErrorCode,
+			Msg:  "用户名错误",
+		}, nil
+	}
+	// 验证密码
+	if !util.VerifyPass(user.Password, hashedPassword) {
+		return &pb.LoginResponse{
+			Code: common.ErrorCode,
+			Msg:  "密码错误",
+		}, nil
+	}
 
-func (s *server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
-	return nil, nil
+	// 生成sessionId，并在redis中缓存用户id
+	sessionId := util.GenerateSessionId()
+	tokenKey := cache.UserTokenKey + sessionId
+	cache.RedisClient.HSet(tokenKey, "id", id)
+	cache.RedisClient.Expire(tokenKey, cache.UserTokenTimeout)
+
+	return &pb.LoginResponse{
+		Code:      common.SuccessCode,
+		Msg:       "登陆成功",
+		SessionId: sessionId,
+		User:      &pb.User{
+			Id:             id,
+			Username:       user.Username,
+			ProfilePicture: profilePicture,
+		},
+	}, nil
 }
 
 func (s *server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
+	_, err := cache.RedisClient.HGet(cache.UserTokenKey+in.SessionId, "id").Int()
+	if err != nil {
+		return &pb.CheckTokenResponse{
+			Code: common.ErrorCode,
+			Msg:  "登录状态已过期",
+		}, nil
+	}
+	return &pb.CheckTokenResponse{
+		Code: common.SuccessCode,
+		Msg:  "session校验成功",
+	}, nil
+}
+
+func (s *server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
 	return nil, nil
 }
 

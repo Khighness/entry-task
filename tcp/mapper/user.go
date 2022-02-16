@@ -31,7 +31,7 @@ func CheckUserUsernameExist(username string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	return count == 0, nil
+	return count > 0, nil
 }
 
 // QueryUserById 根据id查询用户信息
@@ -43,11 +43,11 @@ func QueryUserById(id int64) (username, profilePicture string, err error) {
 	return username, profilePicture, nil
 }
 
-// QueryUserPasswordById 根据id查询用户密码
-func QueryUserPasswordById(id int64) (password string, err error) {
-	err = model.DB.QueryRow("SELECT password FROM user WHERE id = ?", id).Scan(&password)
+// QueryUserByUsername 根据username查询用户信息
+func QueryUserByUsername(username string) (id int64, password, profilePicture string,  err error) {
+	err = model.DB.QueryRow("SELECT id, password, profile_picture FROM user WHERE username = ?", username).Scan(&id, &profilePicture, &password)
 	if err != nil {
-		return "", nil
+		return 0, "", "", err
 	}
-	return password, nil
+	return id, password, profilePicture, nil
 }

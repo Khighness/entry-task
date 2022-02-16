@@ -23,6 +23,12 @@ var (
 	DbName string
 )
 
+// for test
+func init()  {
+	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
+	connectMySQL(url)
+}
+
 // MySQL 初始化MySQL
 func MySQL(file *ini.File) {
 	loadMysqlConfig(file)
