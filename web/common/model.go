@@ -11,6 +11,12 @@ type UserInfo struct {
 	ProfilePicture string
 }
 
+// SuccessMsg 成功提示
+type SuccessMsg struct {
+	SucType string
+	Message string
+}
+
 // ErrorMsg 错误提示
 type ErrorMsg struct {
 	ErrType string

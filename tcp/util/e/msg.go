@@ -23,6 +23,8 @@ var codeMessageDic = map[int]string{
 	ErrorPasswordIncorrect:    "密码错误",
 	ErrorTokenIncorrect:       "cookie非法",
 	ErrorTokenExpired:         "登陆状态已过期",
+
+	ErrorOperateDatabase:      "操作数据库失败",
 }
 
 // GetMsg 根据状态码获取信息

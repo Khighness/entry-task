@@ -16,7 +16,7 @@ var pass = "czk911"
 func TestEncryptAndVerify(t *testing.T) {
 	hash, err := util.EncryptPass(pass)
 	assert.Nil(t, err)
-	fmt.Println("encrypt:", hash)
+	fmt.Printf("encrypt:%s, len:%d\n", hash, len(hash))
 	result := util.VerifyPass(pass, hash)
 	assert.Equal(t, true, result)
 }

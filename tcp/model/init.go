@@ -35,7 +35,7 @@ func Load(file *ini.File) {
 	connectMySQL(url)
 }
 
-// 读取MySQL配置
+// loadMysqlConfig 读取MySQL配置
 func loadMysqlConfig(file *ini.File) {
 	mysql := file.Section("mysql")
 	DbHost = mysql.Key("DbHost").String()
@@ -45,7 +45,7 @@ func loadMysqlConfig(file *ini.File) {
 	DbName = mysql.Key("DbName").String()
 }
 
-// 连接到MySQL
+// connectMySQL 连接到MySQL
 func connectMySQL(url string) {
 	db, err := sql.Open("mysql", url)
 

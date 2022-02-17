@@ -28,7 +28,7 @@ func GenerateSessionId() string {
 	buf = hash.Sum(nil)
 
 	//s := hex.EncodeToString(buf)
-	//return s // 670ns
+	//return s //test: 670ns
 
 	// 转换为十六进制大写字符串
 	for i := 0; i < common.SessionIdBytes; i++ {
@@ -46,5 +46,5 @@ func GenerateSessionId() string {
 		}
 	}
 
-	return sessionId.String() // 1 us
+	return sessionId.String() // test: 1 us
 }

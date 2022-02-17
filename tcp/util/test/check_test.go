@@ -2,7 +2,7 @@ package test
 
 import (
 	"entry/tcp/util"
-	"fmt"
+	"entry/tcp/util/e"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -15,48 +15,38 @@ func TestCheckUsername(t *testing.T) {
 	name1 := "k"
 	name2 := "zzzzzzzzzzkkkkkkkkkk"
 	name3 := "chen zikang"
-	var err error
+	var status int
 
-	err = util.CheckUsername(name1)
-	assert.NotNil(t, err)
-	fmt.Printf("name: %s, result: %s\n", name1, err.Error())
-	err = util.CheckUsername(name2)
-	assert.NotNil(t, err)
-	fmt.Printf("name: %s, result: %s\n", name2, err.Error())
-	err = util.CheckUsername(name3)
-	assert.Nil(t, err)
-	fmt.Printf("name: %s, result: %s\n", name3, "ok")
+	status = util.CheckUsername(name1)
+	assert.Equal(t, e.ErrorUsernameTooShort, status)
+	status = util.CheckUsername(name2)
+	assert.Equal(t, e.ErrorUsernameTooLong, status)
+	status = util.CheckUsername(name3)
+	assert.Equal(t, e.SUCCESS, status)
 }
 
 func TestCheckPassword(t *testing.T) {
-	pass1 := "k"                      // err
-	pass2 := "zzzzzzzzzzzkkkkkkkkkkk" // err
+	pass1 := "k"                      // error
+	pass2 := "zzzzzzzzzzzkkkkkkkkkkk" // error
 	pass3 := "123456"                 // level 1
 	pass4 := "chen zikang"            // level 1
 	pass5 := "czk123"                 // level 2
 	pass6 := "czk123CZK"              // level 3
 	pass7 := "czk123@CZK"             // level 4
-	var err error
+	var status int
 
-	err = util.CheckPassword(pass1)
-	assert.NotNil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass1, err.Error())
-	err = util.CheckPassword(pass2)
-	assert.NotNil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass2, err.Error())
-	err = util.CheckPassword(pass3)
-	assert.NotNil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass3, err.Error())
-	err = util.CheckPassword(pass4)
-	assert.NotNil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass4, err.Error())
-	err = util.CheckPassword(pass5)
-	assert.Nil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass5, "ok")
-	err = util.CheckPassword(pass6)
-	assert.Nil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass6, "ok")
-	err = util.CheckPassword(pass7)
-	assert.Nil(t, err)
-	fmt.Printf("pass: %s, result: %s\n", pass7, "ok")
+	status = util.CheckPassword(pass1)
+	assert.Equal(t, e.ErrorPasswordTooShort, status)
+	status = util.CheckPassword(pass2)
+	assert.Equal(t, e.ErrorPasswordTooLong, status)
+	status = util.CheckPassword(pass3)
+	assert.Equal(t, e.ErrorPasswordNotStrong, status)
+	status = util.CheckPassword(pass4)
+	assert.Equal(t, e.ErrorPasswordNotStrong, status)
+	status = util.CheckPassword(pass5)
+	assert.Equal(t, e.SUCCESS, status)
+	status = util.CheckPassword(pass6)
+	assert.Equal(t, e.SUCCESS, status)
+	status = util.CheckPassword(pass7)
+	assert.Equal(t, e.SUCCESS, status)
 }

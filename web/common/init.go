@@ -21,11 +21,13 @@ func Load() {
 	LoadRpcConfig(file)
 }
 
+// loadServerConfig 导入服务配置
 func loadServerConfig(file *ini.File) {
 	server := file.Section("server")
 	HttpAddr = server.Key("HttpAddr").String()
 }
 
+// LoadRpcConfig 导入rpc配置
 func LoadRpcConfig(file *ini.File) {
 	rpc := file.Section("rpc")
 	RpcAddr = rpc.Key("RpcAddr").String()

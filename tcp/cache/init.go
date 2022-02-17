@@ -24,7 +24,7 @@ func Load(file *ini.File) {
 	connectRedis()
 }
 
-// 读取Redis配置
+// loadRedisConfig 读取Redis配置
 func loadRedisConfig(file *ini.File) {
 	redis := file.Section("redis")
 	RedisAddr = redis.Key("RedisAddr").String()
@@ -37,7 +37,7 @@ func loadRedisConfig(file *ini.File) {
 	}
 }
 
-// 连接到Redis
+// connectRedis 连接到Redis
 func connectRedis() {
 	client := redis.NewClient(&redis.Options{
 		Addr:         RedisAddr,

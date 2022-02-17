@@ -36,7 +36,7 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		// 从cookie中取出sessionId
 		cookie, err := r.Cookie(common.CookieTokenKey)
 		if err != nil {
-			view.HandleError(w, "认证失败", "登陆状态已过期，请重新登陆")
+			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage)
 		}
 
 		// 校验sessionId是否合法
@@ -44,7 +44,8 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		defer cancel()
 		response, err := grpc.Client.CheckToken(ctx, &pb.CheckTokenRequest{SessionId: cookie.Value})
 		if err != nil {
-			view.HandleError(w, "", "")
+			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage)
+			return
 		}
 
 		// 认证成功，继续处理业务

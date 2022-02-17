@@ -7,6 +7,7 @@ import (
 	"entry/tcp/mapper"
 	"entry/tcp/util"
 	"entry/tcp/util/e"
+	"log"
 )
 
 // @Author Chen Zikang
@@ -37,7 +38,11 @@ func (s *Server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 	// 检查用户名的唯一性
 	exist, err := mapper.CheckUserUsernameExist(user.Username)
 	if err != nil {
-		return nil, err
+		status = e.ErrorOperateDatabase
+		return &pb.RegisterResponse{
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
+		}, nil
 	}
 	if exist {
 		status = e.ErrorUsernameAlreadyExist
@@ -49,23 +54,26 @@ func (s *Server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 
 	// BCR加密，计算hash
 	var hashedPassword string
-	hashedPassword, err = util.EncryptPass(user.Password)
-	if err != nil {
-		return nil, err
-	}
+	hashedPassword, _ = util.EncryptPass(user.Password)
 
 	// 保存到数据库
 	err = mapper.SaveUser(user.Username, hashedPassword)
 	if err != nil {
-		return nil, err
+		status = e.ErrorOperateDatabase
+		return &pb.RegisterResponse{
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
+		}, nil
 	}
 
+	log.Printf("【用户注册】 用户名：%s \n", user.Username)
 	return &pb.RegisterResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
 	}, nil
 }
 
+// Login 用户登录
 func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var status = e.SUCCESS
 
@@ -80,6 +88,7 @@ func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginRes
 	}
 	// 验证密码
 	if !util.VerifyPass(user.Password, hashedPassword) {
+		log.Printf("pass:%s, hash:%s, res:%v\n", user.Password, hashedPassword, util.VerifyPass(user.Password, hashedPassword))
 		status = e.ErrorPasswordIncorrect
 		return &pb.LoginResponse{
 			Code: int32(status),
@@ -89,10 +98,11 @@ func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginRes
 
 	// 生成sessionId，并在redis中缓存用户id
 	sessionId := util.GenerateSessionId()
-	tokenKey := cache.UserTokenKey + sessionId
+	tokenKey := cache.UserTokenKeyPrefix + sessionId
 	cache.RedisClient.HSet(tokenKey, "id", id)
 	cache.RedisClient.Expire(tokenKey, cache.UserTokenTimeout)
 
+	log.Printf("【用户登录】 用户名：%s \n", user.Username)
 	return &pb.LoginResponse{
 		Code:      int32(status),
 		Msg:       e.GetMsg(status),
@@ -105,9 +115,10 @@ func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginRes
 	}, nil
 }
 
+// CheckToken 检查token
 func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
 	var status = e.SUCCESS
-	var tokenKey = cache.UserTokenKey + in.SessionId
+	var tokenKey = cache.UserTokenKeyPrefix + in.SessionId
 	_, err := cache.RedisClient.HGet(tokenKey, "id").Int()
 	if err != nil {
 		status = e.ErrorTokenExpired
@@ -122,9 +133,12 @@ func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.
 	}, nil
 }
 
+// GetProfile 获取信息
 func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
 	var status = e.SUCCESS
-	id, err := cache.RedisClient.HGet(cache.UserTokenKey+in.SessionId, "id").Int64()
+
+	// 从缓存中获取用户id
+	id, err := cache.RedisClient.HGet(cache.UserTokenKeyPrefix+in.SessionId, "id").Int64()
 	if err != nil {
 		status = e.ErrorTokenExpired
 		return &pb.GetProfileResponse{
@@ -133,6 +147,8 @@ func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 			User: nil,
 		}, nil
 	}
+
+	// 从数据库中查询
 	username, profilePicture, err := mapper.QueryUserById(id)
 	if err != nil {
 		status = e.ErrorTokenExpired
@@ -142,6 +158,7 @@ func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 			User: nil,
 		}, nil
 	}
+
 	return &pb.GetProfileResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
@@ -153,9 +170,12 @@ func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 	}, nil
 }
 
-func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest) (*pb.UpdateProfileResponse, error) {
+// UpdateProfile 更新信息
+func (s *Server) UpdateProfile(ctx context.Context, user *pb.UpdateProfileRequest) (*pb.UpdateProfileResponse, error) {
 	var status = e.SUCCESS
-	id, err := cache.RedisClient.HGet(cache.UserTokenKey+in.SessionId, "id").Int64()
+
+	// 从缓存中获取用户id
+	id, err := cache.RedisClient.HGet(cache.UserTokenKeyPrefix+user.SessionId, "id").Int64()
 	if err != nil {
 		status = e.ErrorTokenExpired
 		return &pb.UpdateProfileResponse{
@@ -163,10 +183,22 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 			Msg:  e.GetMsg(status),
 		}, nil
 	}
-	if in.Username != "" {
-		exist, err := mapper.CheckUserUsernameExist(in.Username)
+
+	// 用户名不为空
+	if user.Username != "" {
+		if status = util.CheckUsername(user.Username); status != e.SUCCESS {
+			return &pb.UpdateProfileResponse{
+				Code: int32(status),
+				Msg:  e.GetMsg(status),
+			}, nil
+		}
+		exist, err := mapper.CheckUserUsernameExist(user.Username)
 		if err != nil {
-			return nil, err
+			status = e.ErrorOperateDatabase
+			return &pb.UpdateProfileResponse{
+				Code: int32(status),
+				Msg:  e.GetMsg(status),
+			}, nil
 		}
 		if exist {
 			status = e.ErrorUsernameAlreadyExist
@@ -175,17 +207,32 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 				Msg:  e.GetMsg(status),
 			}, nil
 		}
-		err = mapper.UpdateUserUsernameById(id, in.Username)
+		err = mapper.UpdateUserUsernameById(id, user.Username)
 		if err != nil {
-			return nil, err
+			status = e.ErrorOperateDatabase
+			return &pb.UpdateProfileResponse{
+				Code: int32(status),
+				Msg:  e.GetMsg(status),
+			}, nil
 		}
+
+		log.Printf("【用户更新】 id：%d，用户名：%s\n", id, user.Username)
 	}
-	if in.ProfilePicture != "" {
-		err = mapper.UpdateUserProfilePictureById(id, in.ProfilePicture)
+
+	// 用户头像不为空
+	if user.ProfilePicture != "" {
+		err = mapper.UpdateUserProfilePictureById(id, user.ProfilePicture)
 		if err != nil {
-			return nil, err
+			status = e.ErrorOperateDatabase
+			return &pb.UpdateProfileResponse{
+				Code: int32(status),
+				Msg:  e.GetMsg(status),
+			}, nil
 		}
+
+		log.Printf("【用户更新】 id：%d，头像：%s\n", id, user.ProfilePicture)
 	}
+
 	return &pb.UpdateProfileResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),

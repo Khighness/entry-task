@@ -34,14 +34,17 @@ func DirectUpdate(w http.ResponseWriter, user common.UserInfo) {
 	_ = t.Execute(w, user)
 }
 
+// HandleSuccess 成功页面
+func HandleSuccess(w http.ResponseWriter, sucType, message string) {
+	t, _ := template.ParseGlob("./web/public/template/success.html")
+	_ = t.Execute(w, common.SuccessMsg{
+		SucType: sucType,
+		Message: message,
+	})
+}
+
 // HandleError 错误页面
 func HandleError(w http.ResponseWriter, errType, message string) {
-	if errType == "" {
-		errType = common.DefaultErrorType
-	}
-	if message == "" {
-		message = common.DefaultErrorMessage
-	}
 	t, _ := template.ParseGlob("./web/public/template/error.html")
 	_ = t.Execute(w, common.ErrorMsg{
 		ErrType: errType,

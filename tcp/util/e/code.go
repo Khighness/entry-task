@@ -5,8 +5,8 @@ package e
 // @Since  2022-02-17
 
 const (
-	SUCCESS = 10000 // 成功
-	ERROR   = 20000 // 失败
+	SUCCESS = 10000
+	ERROR   = 20000
 
 	ErrorUsernameTooShort     = 30001
 	ErrorUsernameTooLong      = 30002
@@ -18,4 +18,6 @@ const (
 	ErrorPasswordIncorrect    = 30008
 	ErrorTokenIncorrect       = 30009
 	ErrorTokenExpired         = 30010
+
+	ErrorOperateDatabase      = 40001
 )

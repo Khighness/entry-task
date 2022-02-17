@@ -24,7 +24,7 @@ func Load() {
 	cache.Load(file)
 }
 
-// Load 初始化
+// loadServerConfig 导入服务配置
 func loadServerConfig(file *ini.File) {
 	ServerAddr = file.Section("server").Key("ServerAddr").String()
 }
