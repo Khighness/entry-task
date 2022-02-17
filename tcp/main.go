@@ -1,9 +1,8 @@
 package main
 
 import (
-	"entry/tcp/cache"
 	"entry/tcp/common"
-	"fmt"
+	"entry/tcp/server"
 )
 
 // @Author Chen Zikang
@@ -12,7 +11,5 @@ import (
 
 func main() {
 	common.Load()
-	//cache.RedisClient.HSet("k", "id", "1")
-	//cache.RedisClient.Expire("k", 3 * time.Second)
-	fmt.Println(cache.RedisClient.HGet("k", "id").Int())
+	server.Start()
 }

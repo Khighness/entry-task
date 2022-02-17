@@ -1,11 +1,17 @@
 package main
 
-import web "entry/web/common"
+import (
+	"entry/web/common"
+	"entry/web/grpc"
+	"entry/web/router"
+)
 
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-16
 
 func main() {
-	web.Load()
+	common.Load()
+	grpc.Init()
+	router.Start()
 }

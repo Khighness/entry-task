@@ -1,9 +1,9 @@
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Register</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Error</title>
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/Khighness/cdn/avatar/K.jpg">
     <style type="text/css">
         body{
             margin: 0;
@@ -32,6 +32,12 @@
             font-weight: 500;
             text-align: center;
             text-transform: uppercase;
+        }
+        .form h3{
+            color: #e27d7d;
+            font-size: 20px;
+            font-weight: 500;
+            text-align: center;
         }
         .form .icons i{
             color: #fff;
@@ -65,6 +71,10 @@
         .form input:focus{
             width: 300px;
         }
+        .form p {
+            text-align: center;
+            color: white;
+        }
         .form button{
             outline: 0;
             background: none;
@@ -96,12 +106,14 @@
 </head>
 <body>
 <div class="form">
-    <form action="/register" method="post">
+    <form action="/login" method="post">
         <h2>Entry Task</h2>
-        <input type="text" name="username" placeholder="Username" required="required">
-        <input type="password" name="password"  placeholder="Password" required="required">
-        <button type="submit" name="button">Register</button>
-        <p class="options">Already Registered? <a href="/login">Sign in</a></p>
+        <h3>It seems to be a problem</h3>
+        <br>
+        <p><b>{{.ErrType}}</b></p>
+        <p><b>{{.Message}}</b></p>
+        <br>
+        <p class="options">Return <a href="/login">Sign In</a></p>
     </form>
 </div>
 </body>

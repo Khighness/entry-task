@@ -15,11 +15,16 @@ import (
 func Load() {
 	file, err := ini.Load("./tcp/conf/conf.ini")
 	if err != nil {
-		log.Println("Load config file error, please check file path")
-		panic(err)
+		log.Fatalln("Load config file error, please check file path:", err)
 	} else {
 		log.Println("Loading config file ...")
 	}
-	model.MySQL(file)
-	cache.Redis(file)
+	loadServerConfig(file)
+	model.Load(file)
+	cache.Load(file)
+}
+
+// Load 初始化
+func loadServerConfig(file *ini.File) {
+	ServerAddr = file.Section("server").Key("ServerAddr").String()
 }

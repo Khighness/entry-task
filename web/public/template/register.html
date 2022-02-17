@@ -3,8 +3,8 @@
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Login</title>
-    <!--<link rel="icon" type="img/x-icon" href="./favicon.ico"/>-->
+    <title>Register</title>
+    <link rel="icon" href="https://cdn.jsdelivr.net/gh/Khighness/cdn/avatar/K.jpg">
     <style type="text/css">
         body{
             margin: 0;
@@ -66,10 +66,6 @@
         .form input:focus{
             width: 300px;
         }
-        .form p {
-            text-align: center;
-            color: white;
-        }
         .form button{
             outline: 0;
             background: none;
@@ -101,13 +97,12 @@
 </head>
 <body>
 <div class="form">
-    <form action="/login" method="post">
+    <form action="/register" method="post">
         <h2>Entry Task</h2>
         <input type="text" name="username" placeholder="Username" required="required">
         <input type="password" name="password" placeholder="Password" required="required">
-        <!-- <p><input type="checkbox" name="remember-me"/>remember me</p> -->
-        <button type="submit" name="button">Login</button>
-        <p class="options">Not Registered? <a href="/register">Sign up</a></p>
+        <button type="submit" name="button">Register</button>
+        <p class="options">Already Registered? <a href="/login">Sign in</a></p>
     </form>
 </div>
 </body>

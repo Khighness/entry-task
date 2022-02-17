@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"github.com/go-redis/redis"
 	"gopkg.in/ini.v1"
 	"log"
@@ -19,8 +18,8 @@ var (
 	RedisDb     int
 )
 
-// Redis 初始化Redis
-func Redis(file *ini.File) {
+// Load 初始化Redis
+func Load(file *ini.File) {
 	loadRedisConfig(file)
 	connectRedis()
 }
@@ -32,8 +31,7 @@ func loadRedisConfig(file *ini.File) {
 	RedisAuth = redis.Key("RedisAuth").String()
 	Db, err := redis.Key("RedisDb").Int()
 	if err != nil {
-		fmt.Println("Wrong configuration of [RedisDb] in config file")
-		panic(err)
+		log.Fatalf("Wrong configuration of [RedisDb] in config file: %s\n", err)
 	} else {
 		RedisDb = Db
 	}
@@ -50,10 +48,9 @@ func connectRedis() {
 	})
 
 	if _, err := client.Ping().Result(); err != nil {
-		log.Printf("Connect to redis server [%s] error\n", RedisAddr)
-		panic(err)
+		log.Fatalf("Failed to connect to redis server [%s]: %s\n", RedisAddr, err)
 	} else {
-		log.Printf("Connect to redis server [%s] successfully\n", RedisAddr)
+		log.Printf("Succeed to connect to redis server [%s]\n", RedisAddr)
 	}
 
 	RedisClient = client

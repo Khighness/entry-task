@@ -1,4 +1,4 @@
-package web
+package common
 
 import (
 	"gopkg.in/ini.v1"
@@ -11,17 +11,22 @@ import (
 
 // Load 初始化
 func Load() {
-	file, err := ini.Load("./doc/doc.ini")
+	file, err := ini.Load("./web/conf/conf.ini")
 	if err != nil {
-		log.Println("Load config file error, please check file path")
-		panic(err)
+		log.Fatalln("Load config file error, please check file path:", err)
 	} else {
 		log.Println("Loading config file ...")
 	}
 	loadServerConfig(file)
+	LoadRpcConfig(file)
 }
 
 func loadServerConfig(file *ini.File) {
 	server := file.Section("server")
-	HttpPort = server.Key("HttpPort").String()
+	HttpAddr = server.Key("HttpAddr").String()
+}
+
+func LoadRpcConfig(file *ini.File) {
+	rpc := file.Section("rpc")
+	RpcAddr = rpc.Key("RpcAddr").String()
 }

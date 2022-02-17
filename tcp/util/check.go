@@ -1,7 +1,8 @@
 package util
 
 import (
-	"fmt"
+	"entry/tcp/common"
+	"entry/tcp/util/e"
 	"regexp"
 )
 
@@ -9,43 +10,27 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-16
 
-const (
-	NameMinLen   = 3
-	NameMaxLen   = 18
-	PassMinLen   = 6
-	PassMaxLen   = 20
-	PassMinLevel = 2
-)
-
-const (
-	PassLevelD = iota
-	PassLevelC
-	PassLevelB
-	PassLevelA
-	PassLevelS
-)
-
 // CheckUsername 校验用户名
-func CheckUsername(username string) error {
-	if len(username) < NameMinLen {
-		return fmt.Errorf("用户名长度不得小于%d", NameMinLen)
+func CheckUsername(username string) int {
+	if len(username) < common.NameMinLen {
+		return e.ErrorUsernameTooShort
 	}
-	if len(username) > NameMaxLen {
-		return fmt.Errorf("用户名长度不得大于%d", NameMaxLen)
+	if len(username) > common.NameMaxLen {
+		return e.ErrorUsernameTooLong
 	}
-	return nil
+	return e.SUCCESS
 }
 
 // CheckPassword 校验密码
-func CheckPassword(password string) error {
-	if len(password) < PassMinLen {
-		return fmt.Errorf("密码长度不得小于%d", PassMinLen)
+func CheckPassword(password string) int {
+	if len(password) < common.PassMinLen {
+		return e.ErrorPasswordTooShort
 	}
-	if len(password) > PassMaxLen {
-		return fmt.Errorf("密码长度不得大于%d", PassMaxLen)
+	if len(password) > common.PassMaxLen {
+		return e.ErrorPasswordTooLong
 	}
 
-	var level int = PassLevelD
+	var level int = common.PassLevelD
 	patternList := []string{`[0-9]+`, `[a-z]+`, `[A-Z]+`, `[~!@#$%^&*_+]`}
 	for _, pattern := range patternList {
 		match, _ := regexp.MatchString(pattern, password)
@@ -54,8 +39,8 @@ func CheckPassword(password string) error {
 		}
 	}
 
-	if level < PassMinLevel {
-		return fmt.Errorf("密码强度较弱，最少包含数字/字母/特殊符号中的以上两种")
+	if level < common.PassMinLevel {
+		return e.ErrorPasswordNotStrong
 	}
-	return nil
+	return e.SUCCESS
 }

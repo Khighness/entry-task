@@ -4,32 +4,33 @@ import (
 	"context"
 	"entry/pb"
 	"entry/tcp/cache"
-	"entry/tcp/common"
 	"entry/tcp/mapper"
 	"entry/tcp/util"
+	"entry/tcp/util/e"
 )
 
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-type server struct{}
+type Server struct{}
 
 // Register 用户注册
-func (s *server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func (s *Server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+	var status = e.SUCCESS
 	var err error
 
 	// 校验用户名和密码
-	if err = util.CheckUsername(user.Username); err != nil {
+	if status = util.CheckUsername(user.Username); status != e.SUCCESS {
 		return &pb.RegisterResponse{
-			Code: common.ErrorCode,
-			Msg:  err.Error(),
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
 		}, nil
 	}
-	if err = util.CheckPassword(user.Password); err != nil {
+	if status = util.CheckPassword(user.Password); status != e.SUCCESS {
 		return &pb.RegisterResponse{
-			Code: common.ErrorCode,
-			Msg:  err.Error(),
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
 		}, nil
 	}
 
@@ -39,9 +40,10 @@ func (s *server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 		return nil, err
 	}
 	if exist {
+		status = e.ErrorUsernameAlreadyExist
 		return &pb.RegisterResponse{
-			Code: common.ErrorCode,
-			Msg:  "该用户名已被其他用户使用",
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
 		}, nil
 	}
 
@@ -57,26 +59,31 @@ func (s *server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 	if err != nil {
 		return nil, err
 	}
+
 	return &pb.RegisterResponse{
-		Code: common.SuccessCode,
-		Msg:  "注册成功",
+		Code: int32(status),
+		Msg:  e.GetMsg(status),
 	}, nil
 }
 
-func (s *server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginResponse, error) {
+	var status = e.SUCCESS
+
 	// 校验用户名是否存在
 	id, hashedPassword, profilePicture, err := mapper.QueryUserByUsername(user.Username)
 	if err != nil {
+		status = e.ErrorUsernameIncorrect
 		return &pb.LoginResponse{
-			Code: common.ErrorCode,
-			Msg:  "用户名错误",
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
 		}, nil
 	}
 	// 验证密码
 	if !util.VerifyPass(user.Password, hashedPassword) {
+		status = e.ErrorPasswordIncorrect
 		return &pb.LoginResponse{
-			Code: common.ErrorCode,
-			Msg:  "密码错误",
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
 		}, nil
 	}
 
@@ -87,10 +94,10 @@ func (s *server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginRes
 	cache.RedisClient.Expire(tokenKey, cache.UserTokenTimeout)
 
 	return &pb.LoginResponse{
-		Code:      common.SuccessCode,
-		Msg:       "登陆成功",
+		Code:      int32(status),
+		Msg:       e.GetMsg(status),
 		SessionId: sessionId,
-		User:      &pb.User{
+		User: &pb.User{
 			Id:             id,
 			Username:       user.Username,
 			ProfilePicture: profilePicture,
@@ -98,24 +105,89 @@ func (s *server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginRes
 	}, nil
 }
 
-func (s *server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
-	_, err := cache.RedisClient.HGet(cache.UserTokenKey+in.SessionId, "id").Int()
+func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
+	var status = e.SUCCESS
+	var tokenKey = cache.UserTokenKey + in.SessionId
+	_, err := cache.RedisClient.HGet(tokenKey, "id").Int()
 	if err != nil {
+		status = e.ErrorTokenExpired
 		return &pb.CheckTokenResponse{
-			Code: common.ErrorCode,
-			Msg:  "登录状态已过期",
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
 		}, nil
 	}
 	return &pb.CheckTokenResponse{
-		Code: common.SuccessCode,
-		Msg:  "session校验成功",
+		Code: int32(status),
+		Msg:  e.GetMsg(status),
 	}, nil
 }
 
-func (s *server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
-	return nil, nil
+func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
+	var status = e.SUCCESS
+	id, err := cache.RedisClient.HGet(cache.UserTokenKey+in.SessionId, "id").Int64()
+	if err != nil {
+		status = e.ErrorTokenExpired
+		return &pb.GetProfileResponse{
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
+			User: nil,
+		}, nil
+	}
+	username, profilePicture, err := mapper.QueryUserById(id)
+	if err != nil {
+		status = e.ErrorTokenExpired
+		return &pb.GetProfileResponse{
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
+			User: nil,
+		}, nil
+	}
+	return &pb.GetProfileResponse{
+		Code: int32(status),
+		Msg:  e.GetMsg(status),
+		User: &pb.User{
+			Id:             id,
+			Username:       username,
+			ProfilePicture: profilePicture,
+		},
+	}, nil
 }
 
-func (s *server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest) (*pb.UpdateProfileResponse, error) {
-	return nil, nil
+func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest) (*pb.UpdateProfileResponse, error) {
+	var status = e.SUCCESS
+	id, err := cache.RedisClient.HGet(cache.UserTokenKey+in.SessionId, "id").Int64()
+	if err != nil {
+		status = e.ErrorTokenExpired
+		return &pb.UpdateProfileResponse{
+			Code: int32(status),
+			Msg:  e.GetMsg(status),
+		}, nil
+	}
+	if in.Username != "" {
+		exist, err := mapper.CheckUserUsernameExist(in.Username)
+		if err != nil {
+			return nil, err
+		}
+		if exist {
+			status = e.ErrorUsernameAlreadyExist
+			return &pb.UpdateProfileResponse{
+				Code: int32(status),
+				Msg:  e.GetMsg(status),
+			}, nil
+		}
+		err = mapper.UpdateUserUsernameById(id, in.Username)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if in.ProfilePicture != "" {
+		err = mapper.UpdateUserProfilePictureById(id, in.ProfilePicture)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &pb.UpdateProfileResponse{
+		Code: int32(status),
+		Msg:  e.GetMsg(status),
+	}, nil
 }

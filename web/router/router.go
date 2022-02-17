@@ -1,8 +1,8 @@
 package router
 
 import (
-	web "entry/web/common"
-	"entry/web/controller"
+	"entry/web/api"
+	"entry/web/common"
 	"entry/web/middleware"
 	"log"
 	"net/http"
@@ -12,17 +12,17 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-// NewRouter 启动http服务器
-func NewRouter() {
-	http.HandleFunc("/hello", controller.Hello)
-	http.HandleFunc("/login", middleware.TimeMiddleWare(controller.Login))
-	http.HandleFunc("/register", middleware.TimeMiddleWare(controller.Register))
-	http.HandleFunc("/upload", middleware.TimeMiddleWare(controller.UploadAvatar))
-	http.HandleFunc("/avatar/", middleware.TimeMiddleWare(controller.ShowAvatar))
-	log.Println("Start http server at port", web.HttpPort)
-	err := http.ListenAndServe(web.HttpPort, nil)
+// Start 启动http server
+func Start() {
+	http.HandleFunc("/hello", api.Hello)
+	http.HandleFunc("/login", middleware.TimeMiddleWare(api.Login))
+	http.HandleFunc("/register", middleware.TimeMiddleWare(api.Register))
+	http.HandleFunc("/update", middleware.TimeMiddleWare(api.UpdateInfo))
+	http.HandleFunc("/upload", middleware.TimeMiddleWare(api.UploadAvatar))
+	http.HandleFunc("/avatar/", middleware.TimeMiddleWare(api.ShowAvatar))
+	log.Printf("Http server is serving at [%s]\n", common.HttpAddr)
+	err := http.ListenAndServe(common.HttpAddr, nil)
 	if err != nil {
-		log.Println("Start http server failed")
-		panic(err)
+		log.Fatalf("Failed to start http server at [%s]\n", common.HttpAddr)
 	}
 }

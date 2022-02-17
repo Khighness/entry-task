@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/ini.v1"
 	"log"
@@ -24,13 +23,13 @@ var (
 )
 
 // for test
-func init()  {
-	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
-	connectMySQL(url)
-}
+//func init() {
+//	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
+//	connectMySQL(url)
+//}
 
-// MySQL 初始化MySQL
-func MySQL(file *ini.File) {
+// Load 初始化MySQL
+func Load(file *ini.File) {
 	loadMysqlConfig(file)
 	url := strings.Join([]string{DbUser, ":", DbPass, "@tcp(", DbHost, ":", DbPort, ")/", DbName, "?charset=utf8&parseTime=true"}, "")
 	connectMySQL(url)
@@ -51,8 +50,7 @@ func connectMySQL(url string) {
 	db, err := sql.Open("mysql", url)
 
 	if err != nil {
-		fmt.Println("Wrong configuration of [MySQL] in config file")
-		panic(err)
+		log.Fatalf("Wrong configuration of [MySQL] in config file: %s\n", err)
 	}
 
 	// 最大连接数
@@ -63,10 +61,9 @@ func connectMySQL(url string) {
 	db.SetConnMaxLifetime(100 * time.Second)
 
 	DB = db
-	if err := DB.Ping(); err != nil {
-		log.Printf("Connect to mysql server [%s] error\n", strings.Join([]string{DbHost, ":", DbPort}, ""))
-		panic(err)
+	if err = DB.Ping(); err != nil {
+		log.Fatalf("Failed to connect to mysql server [%s]: %s\n", strings.Join([]string{DbHost, ":", DbPort}, ""), err)
 	} else {
-		log.Printf("Connect to mysql server [%s] successfully\n", strings.Join([]string{DbHost, ":", DbPort}, ""))
+		log.Printf("Succeed to connect to mysql server [%s]\n", strings.Join([]string{DbHost, ":", DbPort}, ""))
 	}
 }
