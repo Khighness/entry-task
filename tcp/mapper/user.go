@@ -30,7 +30,7 @@ func UpdateUserProfilePictureById(id int64, profilePicture string) error {
 // CheckUserUsernameExist 检查用户名是否已存在
 func CheckUserUsernameExist(username string) (bool, error) {
 	var count int64
-	err := model.DB.QueryRow("SELECT COUNT(`username`) FROM `user` WHERE `username` = ?", username).Scan(&count)
+	err := model.DB.QueryRow("SELECT COUNT(`username`) FROM `user` WHERE BINARY `username` = ?", username).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -47,7 +47,7 @@ func QueryUserById(id int64) (username, profilePicture string, err error) {
 }
 
 // QueryUserByUsername 根据username查询用户信息
-func QueryUserByUsername(username string) (id int64, password, profilePicture string,  err error) {
+func QueryUserByUsername(username string) (id int64, password, profilePicture string, err error) {
 	err = model.DB.QueryRow("SELECT `id`, `password`, `profile_picture` FROM `user` WHERE `username` = ?", username).Scan(&id, &password, &profilePicture)
 	if err != nil {
 		return 0, "", "", err

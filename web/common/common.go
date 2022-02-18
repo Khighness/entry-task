@@ -12,14 +12,15 @@ var (
 )
 
 const (
-	Get                 = "GET"
-	Post                = "POST"
+	Get  = "GET"
+	Post = "POST"
 )
 
 const (
-	FileStoragePath     = "./web/public/"
-	CookieTokenKey      = "sessionId"
-	CookieTokenTimeout  = 24 * time.Hour
+	FileStoragePath    = "./web/public/"
+	RelativeAvatarPath = "avatar/"
+	CookieTokenKey     = "sessionId"
+	CookieTokenTimeout = 24 * time.Hour
 )
 
 const (
@@ -29,4 +30,3 @@ const (
 	CookieErrorType     = "认证失败"
 	CookieErrorMessage  = "登录状态已过期"
 )
-

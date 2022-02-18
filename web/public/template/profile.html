@@ -2,8 +2,9 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Profile</title>
+    <title>Entry Task</title>
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/Khighness/cdn/avatar/K.jpg">
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
     <style type="text/css">
         /*头像效果-start*/
         html {
@@ -7844,7 +7845,6 @@
             font-size: 0.8em;
             font-weight: bold;
             text-align: center;
-            text-transform: uppercase;
             letter-spacing: 1px;
         }
 
@@ -10103,7 +10103,7 @@
                                 <div class="info-back">
                                     <h2>
 
-                                        别看了
+                                        看什么
 
                                     </h2>
                                     <p>
@@ -10145,4 +10145,17 @@
         </div>
     </header>
 </body>
+
+<script>
+    $(document).ready(function() {
+        // 一言API
+        fetch('https://v1.hitokoto.cn').then(function (res) {
+            return res.json();
+        }).then(function (e) {
+            $('#description').html(e.hitokoto + "<br/> -「<strong>" + e.from + "</strong>」")
+        }).catch(function (err) {
+            console.error(err);
+        })
+    })
+</script>
 </html>

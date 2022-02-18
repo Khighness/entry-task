@@ -1,6 +1,11 @@
 ## entry-task
 
-![golang](https://img.shields.io/badge/go-1.17-blue?style=for-the-badge&logo=go)
+<center>
+	<img src="https://img.shields.io/badge/go-1.17-blue?style=for-the-badge&logo=go" alt="golang">
+	<br><br>
+  <a href="./doc/entry/api.md">🚀 API</a> | <a href="./doc/entry/ben.md">🛳 BEN</a> 
+</center>
+
 
 
 
@@ -16,7 +21,8 @@ entry-task
     │  ├─common        初始化
     │  ├─conf          tcp配置
     │  ├─mapper        持久化
-    │  ├─model         服务器
+    │  ├─model         mysql数据库
+    │  ├─server        服务器
     │  ├─service       rpc接口
     │  └─util          工具
     └─web              WEB服务器
@@ -40,11 +46,11 @@ entry-task
 
 
 ```shell
-$ mkdir -p /Users/zikang.chen/Docker/mysql/data /Users/zikang.chen/Docker/mysql/doc
+$ mkdir -p /Users/zikang.chen/Docker/mysql/data /Users/zikang.chen/Docker/mysql/conf
 $ docker run --name mysql -d -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=KAG1823 mysql:8.0.20
-$ docker cp mysql:/etc/mysql/my.cnf /Users/zikang.chen/Docker/mysql/doc
-$ vim /Users/zikang.chen/Docker/mysql/doc/my.cnf
+$ docker cp mysql:/etc/mysql/my.cnf /Users/zikang.chen/Docker/mysql/conf
+$ vim /Users/zikang.chen/Docker/mysql/conf/my.cnf
 # ADD
 [mysqld]
 character-set-server=utf8
@@ -57,7 +63,7 @@ $ docker stop mysql && docker rm mysql
 $ docker run --name mysql \
 -d -p 3306:3306  \
 -e MYSQL_ROOT_PASSWORD=KAG1823 \
--v /Users/zikang.chen/Docker/mysql/doc/my.cnf:/etc/mysql/my.cnf \
+-v /Users/zikang.chen/Docker/mysql/conf/my.cnf:/etc/mysql/my.cnf \
 -v /Users/zikang.chen/Docker/mysql/data:/var/lib/mysql \
 --restart=on-failure:3 \
 mysql:8.0.20
@@ -73,10 +79,10 @@ $ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KAG1823';
 
 
 ```shell
-$ mkdir -p /Users/zikang.chen/Docker/redis/data /Users/zikang.chen/Docker/redis/doc
-$ cd /Users/zikang.chen/Docker/redis/doc
-$ touch redis.doc
-$ cat << EOF >>/Users/zikang.chen/Docker/redis/doc/redis.doc
+$ mkdir -p /Users/zikang.chen/Docker/redis/data /Users/zikang.chen/Docker/redis/conf
+$ cd /Users/zikang.chen/Docker/redis/conf
+$ touch redis.conf
+$ cat << EOF >>/Users/zikang.chen/Docker/redis/conf/redis.conf
 port 6379
 #bind 0.0.0.0
 daemonize no
@@ -106,7 +112,7 @@ EOF
 
 $ docker run -d -p 6379:6379 --name redis \
 -v /Users/zikang.chen/Docker/redis/data:/data \
--v /Users/zikang.chen/Docker/redis/doc/redis.doc:/etc/redis/redis.doc \
+-v /Users/zikang.chen/Docker/redis/conf/redis.conf:/etc/redis/redis.conf \
 redis:6.2.6 \
 --requirepass "KAG1823" 
 ```
@@ -115,19 +121,25 @@ redis:6.2.6 \
 
 ### 快速运行
 
-1. 下载依赖
+1. 导入脚本
+
+```
+./doc/mysql/db.sql
+```
+
+2. 下载依赖
 
 ```shell
 $ go mod tidy
 ```
 
-2. 启动tcp server
+3. 启动tcp server
 
 ```shell
 $ go run tcp/main.go
 ```
 
-3. 启动web server
+4. 启动web server
 
 ```shell
 $ go run web/main.go
@@ -135,7 +147,14 @@ $ go run web/main.go
 
 
 
-> 效果预览
+测试账号
+
+| username  | password |
+| --------- | -------- |
+| Khighness | czk911   |
+| FlowerK   | Czk911   |
+
+效果预览
 
 <table>
   <tr>
@@ -147,3 +166,9 @@ $ go run web/main.go
      <td width="50%" align="top"><img src="./doc/images/profile.png"/></td>
   </tr>
 </table>
+
+```shell
+curl --request GET -sL \
+     --url 'http://example.com'\
+     --output './path/to/file'
+```

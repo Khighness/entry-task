@@ -36,7 +36,8 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		// 从cookie中取出sessionId
 		cookie, err := r.Cookie(common.CookieTokenKey)
 		if err != nil {
-			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage)
+			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage, "Sign In", view.LoginUrl)
+			return
 		}
 
 		// 校验sessionId是否合法
@@ -44,16 +45,16 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		defer cancel()
 		response, err := grpc.Client.CheckToken(ctx, &pb.CheckTokenRequest{SessionId: cookie.Value})
 		if err != nil {
-			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage)
+			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage, "Sign In", view.LoginUrl)
 			return
 		}
 
-		// 认证成功，继续处理业务
 		if response.Code == common.RpcSuccessCode {
+			// 认证成功，继续处理业务
 			next.ServeHTTP(w, r)
 		} else {
-			// 认证失败，重定向登陆页面
-			view.DirectLogin(w)
+			// 认证失败，重定向到登录
+			http.Redirect(w, r, "/login", http.StatusFound)
 		}
 	})
 }

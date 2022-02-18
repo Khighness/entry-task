@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <title>Update</title>
+    <title>Entry Task</title>
     <link rel="icon" href="https://cdn.jsdelivr.net/gh/Khighness/cdn/avatar/K.jpg">
     <style type="text/css">
         body{
@@ -31,7 +31,6 @@
             font-size: 28px;
             font-weight: 500;
             text-align: center;
-            text-transform: uppercase;
         }
         .form .icons i{
             color: #fff;
@@ -70,7 +69,6 @@
             background: none;
             color: #fff;
             font-size: 14px;
-            text-transform: uppercase;
             width: 150px;
             padding: 15px;
             border: 2.5px solid #10AC84;
@@ -97,8 +95,8 @@
 <body>
 <div class="form">
     <form action="/update" method="post" enctype="multipart/form-data">
-        <h2>Entry Task</h2>
-        <input type="file" name="profile_picture">
+        <h2>Update Profile</h2>
+        <input type="file" name="profile_picture" id="upload_picture">
         <input type="text" name="username" placeholder="username" required="required" value="{{.Username}}">
         <button type="submit" name="button">Submit</button>
     </form>
