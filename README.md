@@ -167,9 +167,3 @@ $ go run web/main.go
      <td width="50%" align="top"><img src="./doc/images/profile.png"/></td>
   </tr>
 </table>
-
-```shell
-curl --request GET -sL \
-     --url 'http://example.com'\
-     --output './path/to/file'
-```
