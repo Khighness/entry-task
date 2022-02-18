@@ -1,10 +1,11 @@
 ## entry-task
 
-<center>
-	<img src="https://img.shields.io/badge/go-1.17-blue?style=for-the-badge&logo=go" alt="golang">
-	<br><br>
+<p align="center">
+  <img src="https://img.shields.io/badge/go-1.17-blue?style=for-the-badge&logo=go" alt="golang">
+</p>
+<p align="center">
   <a href="./doc/entry/api.md">🚀 API</a> | <a href="./doc/entry/ben.md">🛳 BEN</a> 
-</center>
+</p>
 
 
 
