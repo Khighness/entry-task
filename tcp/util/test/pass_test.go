@@ -11,7 +11,7 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-16
 
-var pass = "czk911"
+var pass = "123456"
 
 func TestEncryptAndVerify(t *testing.T) {
 	hash, err := util.EncryptPass(pass)

@@ -2,7 +2,7 @@ package util
 
 import (
 	"entry/tcp/common"
-	"entry/tcp/util/e"
+	"entry/tcp/common/e"
 	"regexp"
 )
 

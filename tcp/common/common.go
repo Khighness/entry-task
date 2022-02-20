@@ -19,7 +19,7 @@ const (
 	NameMaxLen   = 18
 	PassMinLen   = 6
 	PassMaxLen   = 20
-	PassMinLevel = 2
+	PassMinLevel = PassLevelB
 )
 
 // 密码强度

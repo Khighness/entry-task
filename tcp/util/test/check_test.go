@@ -1,8 +1,8 @@
 package test
 
 import (
+	"entry/tcp/common/e"
 	"entry/tcp/util"
-	"entry/tcp/util/e"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

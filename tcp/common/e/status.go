@@ -9,6 +9,26 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-17
 
+// RPC 状态码
+const (
+	SUCCESS = 10000
+	ERROR   = 20000
+
+	ErrorUsernameTooShort     = 30001
+	ErrorUsernameTooLong      = 30002
+	ErrorUsernameAlreadyExist = 30003
+	ErrorPasswordTooShort     = 30004
+	ErrorPasswordTooLong      = 30005
+	ErrorPasswordNotStrong    = 30006
+	ErrorUsernameIncorrect    = 30007
+	ErrorPasswordIncorrect    = 30008
+	ErrorTokenIncorrect       = 30009
+	ErrorTokenExpired         = 30010
+
+	ErrorOperateDatabase      = 40001
+)
+
+// 状态码对应信息字典
 var codeMessageDic = map[int]string{
 	SUCCESS: "OK",
 	ERROR:   "ERROR",
