@@ -32,7 +32,7 @@ type ConnPool struct {
 type Permission struct {
 	NextConnIndex
 	RpcCli      *Client
-	CreteAt     time.Time
+	CreateAt    time.Time
 	MaxLifeTime time.Duration
 }
 
@@ -128,7 +128,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 	permission = Permission{
 		NextConnIndex: NextConnIndex{nextConnIndex},
 		RpcCli:        client,
-		CreteAt:       nowFunc(),
+		CreateAt:      nowFunc(),
 		MaxLifeTime:   0,
 	}
 	log.Printf("Achieve connection[created], openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
@@ -158,7 +158,7 @@ func (pool *ConnPool) Release(client *Client, ctx context.Context) (result bool,
 		permission := Permission{
 			NextConnIndex: NextConnIndex{reqKey},
 			RpcCli:        client,
-			CreteAt:       nowFunc(),
+			CreateAt:      nowFunc(),
 			MaxLifeTime:   time.Second * 5,
 		}
 		req <- permission
@@ -174,7 +174,7 @@ func (pool *ConnPool) Release(client *Client, ctx context.Context) (result bool,
 				permission := Permission{
 					NextConnIndex: NextConnIndex{nextConnIndex},
 					RpcCli:        client,
-					CreteAt:       nowFunc(),
+					CreateAt:      nowFunc(),
 					MaxLifeTime:   time.Second * 5,
 				}
 				pool.availableConn[nextConnIndex] = permission
