@@ -28,9 +28,12 @@ func UpdateUserProfilePictureById(id int64, profilePicture string) error {
 }
 
 // CheckUserUsernameExist 检查用户名是否已存在
+// MySQL比较字符串在大小写敏感的情况下，必须转binary
+// 在binary下，查询username无法走index_username
+// 为了保证性能，用户名的大小写不敏感
 func CheckUserUsernameExist(username string) (bool, error) {
 	var count int64
-	err := model.DB.QueryRow("SELECT COUNT(`username`) FROM `user` WHERE BINARY `username` = ?", username).Scan(&count)
+	err := model.DB.QueryRow("SELECT COUNT(`username`) FROM `user` WHERE `username` = ?", username).Scan(&count)
 	if err != nil {
 		return false, err
 	}

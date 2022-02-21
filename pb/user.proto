@@ -8,6 +8,7 @@ service UserService {
   rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse) {}
   rpc GetProfile (GetProfileRequest) returns (GetProfileResponse) {}
   rpc UpdateProfile (UpdateProfileRequest) returns (UpdateProfileResponse) {}
+  rpc Logout (LogoutRequest) returns (LogoutResponse) {}
 }
 
 message User {
@@ -67,3 +68,14 @@ message UpdateProfileResponse {
   int32 code = 1;
   string msg = 2;
 }
+
+message LogoutRequest {
+  string session_id = 1;
+}
+
+message LogoutResponse {
+  int32 code = 1;
+  string msg = 2;
+}
+
+

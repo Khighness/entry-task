@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -63,6 +64,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		username := strings.Join(r.Form["username"], "")
 		password := strings.Join(r.Form["password"], "")
 
+		start := time.Now()
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		response, err := grpc.Client.Login(ctx, &pb.LoginRequest{
@@ -71,6 +73,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
+			log.Println(err)
 			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign In", view.LoginUrl)
 			return
 		}
@@ -79,8 +82,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		http.SetCookie(w, generateCookie(common.CookieTokenKey, response.SessionId))
-		http.Redirect(w, r, "/profile", http.StatusFound)
+		tokenCookie := &http.Cookie{
+			Name:     common.CookieTokenKey,
+			Value:    response.SessionId,
+			Path:     "/",
+			Expires:  time.Now().Add(common.CookieTokenTimeout),
+			HttpOnly: false,
+		}
+		http.SetCookie(w, tokenCookie)
+		http.Redirect(w, r, view.ProfileUrl, http.StatusFound)
+		log.Println("login time:", time.Since(start))
 	}
 }
 
@@ -160,7 +171,7 @@ func UpdateInfo(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil {
-			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Update", view.UpdateUrl)
+			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Update Profile", view.UpdateUrl)
 			return
 		}
 		if response.Code != common.RpcSuccessCode {
@@ -170,6 +181,28 @@ func UpdateInfo(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, "/profile", http.StatusFound)
 	}
+}
+
+// Logout 退出登录
+func Logout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie(common.CookieTokenKey)
+	if err != nil {
+		http.Redirect(w, r, view.LoginUrl, http.StatusFound)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	response, err := grpc.Client.Logout(ctx, &pb.LogoutRequest{SessionId: cookie.Value})
+	if err != nil || response.Code != common.RpcSuccessCode {
+		view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign In", view.LoginUrl)
+		return
+	}
+	removeCookie := &http.Cookie{
+		Name:   common.CookieTokenKey,
+		MaxAge: -1,
+	}
+	http.SetCookie(w, removeCookie)
+	http.Redirect(w, r, view.LoginUrl, http.StatusFound)
 }
 
 // getUserFromCookie 根据cookie获取用户信息
@@ -191,15 +224,4 @@ func getUserFromCookie(r *http.Request) (user *common.UserInfo, err error) {
 		Username:       response.User.Username,
 		ProfilePicture: response.User.ProfilePicture,
 	}, nil
-}
-
-// generateCookie 生成cookie
-func generateCookie(name, value string) *http.Cookie {
-	return &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     "/",
-		Expires:  time.Now().Add(common.CookieTokenTimeout),
-		HttpOnly: false,
-	}
 }

@@ -4,41 +4,54 @@ CREATE TABLE `user` (
   `username` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT '用户名',
   `password` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT '密码',
   `profile_picture` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT '头像',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX index_username(`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 初始化
-INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (1, 'Khighness', '$2a$12$7uFkvyQfIMIub/CE89yy.eQqBDhyRYHNFeyWJUhGef597XdFJD/bC', 'http://127.0.0.1:10000/avatar/khighness.jpg');
-INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (2, 'FlowerK', '$2a$12$Mr1AmXijhEZ1IgM9HjkvPepQgP/TorE/migfzLsCE5Mh6Y84ysdsq', 'http://127.0.0.1:10000/avatar/flowerk.jpeg');
+INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (1, 'KHighness', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/khighness.jpg');
+INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (2, 'FlowerK', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/flowerk.jpeg');
 
 -- 函数：产生n位随机名字
-DELIMITER $$
-CREATE FUNCTION rand_name(n INT) RETURNS VARCHAR(255)
-BEGIN
-    DECLARE chars_str VARCHAR(100) DEFAULT '@0123456789abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWXYZ=';
-    DECLARE return_str VARCHAR(255) DEFAULT '';
-    DECLARE i INT DEFAULT 0;
-    WHILE i < n DO
-    SET return_str = CONCAT(return_str,SUBSTRING(chars_str,FLOOR(1+RAND()*64),1));
-    SET i = i + 1;
-    END WHILE;
-    RETURN return_str;
-END $$
+-- DELIMITER $$
+-- CREATE FUNCTION rand_name(n INT) RETURNS VARCHAR(255)
+-- BEGIN
+--     DECLARE chars_str VARCHAR(100) DEFAULT '@0123456789abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWXYZ=';
+--     DECLARE return_str VARCHAR(255) DEFAULT '';
+--     DECLARE i INT DEFAULT 0;
+--     WHILE i < n DO
+--             SET return_str = CONCAT(return_str,SUBSTRING(chars_str,FLOOR(1+RAND()*64),1));
+--             SET i = i + 1;
+-- END WHILE;
+-- RETURN return_str;
+-- END $$
 
-
--- 存储过程：从起始start_id+1开始，插入max_num条数据
+-- 存储过程：从起始start_id开始，插入max_num条数据
 DELIMITER $$
 CREATE PROCEDURE insert_user(IN start_id INT(10),IN max_num INT(10))
 BEGIN
-DECLARE i INT DEFAULT 0;
+    DECLARE i INT DEFAULT 0;
+    SET @user_prefix = 'user_';
     SET autocommit = 0;
     REPEAT
-    SET i = i + 1;
-    INSERT INTO user(id,username,password,profile_picture) VALUES((start_id+i),rand_name(12),'$2a$12$DOrlHGuWsNMs4GdY/E3d9edISCpZfX1PnycD6iP.1P4kAJLIwmtZu','http://127.0.0.1:10000/avatar/khighness.jpg');
+INSERT INTO user(id,username,password,profile_picture) VALUES((start_id+i),CONCAT(@user_prefix,start_id+i),'e10adc3949ba59abbe56e057f20f883e','http://127.0.0.1:10000/avatar/default.jpg');
+        SET i = i + 1;
     UNTIL i = max_num
-    END REPEAT;
-    COMMIT;
+END REPEAT;
+COMMIT;
 END $$
 
 -- 插入1000,0000条数据
-call insert_user(10, 10000000)
+call insert_user(11, 10000000)
+
+
+# 最大连接数
+show variables like '%max_connections%';
+# 已使用连接数
+show global status like 'Max_used_connections';
+# 设置最大连接数
+set global max_connections = 10000;
+# 客户端连接数
+select count(*) from information_schema.processlist;
+# 客户端连接ip数
+select SUBSTRING_INDEX(host,':',1) as ip , count(*) from information_schema.processlist group by ip

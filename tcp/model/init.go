@@ -23,10 +23,10 @@ var (
 )
 
 // For test
-//func init() {
-//	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
-//	connectMySQL(url)
-//}
+func init() {
+	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
+	connectMySQL(url)
+}
 
 // Load 初始化MySQL
 func Load(file *ini.File) {
@@ -54,11 +54,13 @@ func connectMySQL(url string) {
 	}
 
 	// 最大连接数
-	db.SetMaxOpenConns(100)
+	db.SetMaxOpenConns(10000)
 	// 闲置连接数
-	db.SetMaxIdleConns(20)
+	db.SetMaxIdleConns(1000)
 	// 最大存活时间
-	db.SetConnMaxLifetime(100 * time.Second)
+	db.SetConnMaxLifetime(time.Hour)
+	// 最大空闲时间
+	db.SetConnMaxIdleTime(time.Hour)
 
 	DB = db
 	if err = DB.Ping(); err != nil {

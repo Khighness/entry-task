@@ -93,7 +93,7 @@ loglevel verbose
 
 maxmemory-policy volatile-ttl
 slowlog-log-slower-than 2000
-maxclients 512
+maxclients 20000
 timeout 1800
 
 dir ./
@@ -151,9 +151,9 @@ $ go run web/main.go
 测试账号
 
 | username  | password |
-| --------- | -------- |
+| --------- |----------|
 | Khighness | czk911   |
-| FlowerK   | Czk911   |
+| FlowerK   | czk911   |
 
 效果预览
 

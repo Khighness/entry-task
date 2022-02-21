@@ -160,3 +160,18 @@ curl -X GET \
      'http://127.0.0.1:10000/avatar/default.jpg'
 ```
 
+
+
+### 6. 退出登录
+
+请求方式：POST
+
+请求路径：/logout
+
+请求结果：redirect
+
+```shell
+curl -X POST \
+     --cookie 'sessionId=16656C030BA870FDC835523FD3317040' \
+     'http://127.0.0.1:10000/logout'
+```

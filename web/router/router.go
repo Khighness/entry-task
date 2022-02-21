@@ -21,6 +21,7 @@ func Start() {
 	http.HandleFunc(view.ProfileUrl, middleware.TimeMiddleWare(middleware.TokenMiddleWare(api.GetProfile)))
 	http.HandleFunc(view.AvatarUrl, middleware.TimeMiddleWare(api.ShowAvatar))
 	http.HandleFunc(view.UpdateUrl, middleware.TimeMiddleWare(middleware.TokenMiddleWare(api.UpdateInfo)))
+	http.HandleFunc(view.LogoutUrl, middleware.TimeMiddleWare(api.Logout))
 	log.Printf("Web server is serving at [%s]\n", common.HttpAddr)
 	err := http.ListenAndServe(common.HttpAddr, nil)
 	if err != nil {

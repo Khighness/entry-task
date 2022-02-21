@@ -48,6 +48,11 @@ func SetUserInfo(sessionId string, user *model.User) {
 	RedisClient.Expire(userTokenKey, UserTokenTimeout)
 }
 
+// DelUserInfo 删除用户信息
+func DelUserInfo(sessionId string) {
+	RedisClient.Del(generateUserTokenKey(sessionId))
+}
+
 // SetUserField 缓存用户字段信息
 func SetUserField(sessionId, key, val string) {
 	RedisClient.HSet(generateUserTokenKey(sessionId), key, val)

@@ -10,6 +10,7 @@ const (
 	ProfileUrl     = "/profile"
 	AvatarUrl      = "/avatar/"
 	UpdateUrl      = "/update"
+	LogoutUrl      = "/logout"
 	templatePath   = "./web/public/template/"
 	templateSuffix = ".html"
 )

@@ -14,8 +14,6 @@ import (
 
 var Client pb.UserServiceClient
 
-// TODO rpc连接池
-
 func Init() {
 	conn, err := grpc.Dial(common.RpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

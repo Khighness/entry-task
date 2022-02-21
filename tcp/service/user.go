@@ -56,7 +56,7 @@ func (s *Server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 
 	// BCR加密，计算hash
 	var hashedPassword string
-	hashedPassword, _ = util.EncryptPass(user.Password)
+	hashedPassword, _ = util.EncryptPassByMd5(user.Password)
 
 	// 保存到数据库
 	err = mapper.SaveUser(user.Username, hashedPassword)
@@ -77,8 +77,10 @@ func (s *Server) Register(ctx context.Context, user *pb.RegisterRequest) (*pb.Re
 
 // Login 用户登录
 func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginResponse, error) {
+	timeStart := time.Now()
 	var status = e.SUCCESS
 
+	timeCheckStart := time.Now()
 	// 校验用户名是否存在
 	id, hashedPassword, profilePicture, err := mapper.QueryUserByUsername(user.Username)
 	if err != nil {
@@ -88,26 +90,32 @@ func (s *Server) Login(ctx context.Context, user *pb.LoginRequest) (*pb.LoginRes
 			Msg:  e.GetMsg(status),
 		}, nil
 	}
+	log.Println("check time:", time.Since(timeCheckStart))
+
+	timeVerifyStart := time.Now()
 	// 验证密码
-	if !util.VerifyPass(user.Password, hashedPassword) {
-		log.Printf("pass:%s, hash:%s, res:%v\n", user.Password, hashedPassword, util.VerifyPass(user.Password, hashedPassword))
+	if !util.VerifyPassByMD5(user.Password, hashedPassword) {
 		status = e.ErrorPasswordIncorrect
 		return &pb.LoginResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
 		}, nil
 	}
+	log.Println("verify time:", time.Since(timeVerifyStart))
 
+	timeTokenStart := time.Now()
 	// 生成sessionId，并在redis中缓存用户信息
 	sessionId := util.GenerateSessionId()
-	cache.SetUserInfo(sessionId, &model.User{
+	go cache.SetUserInfo(sessionId, &model.User{
 		Id:             id,
 		Username:       user.Username,
 		Password:       "",
 		ProfilePicture: profilePicture,
 	})
+	log.Println("token time:", time.Since(timeTokenStart))
 
-	log.Printf("【用户登录】 用户名：%s \n", user.Username)
+	//log.Printf("【用户登录】 用户名：%s \n", user.Username)
+	log.Println("【use time】", time.Since(timeStart))
 	return &pb.LoginResponse{
 		Code:      int32(status),
 		Msg:       e.GetMsg(status),
@@ -283,5 +291,15 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 	return &pb.UpdateProfileResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
+	}, nil
+}
+
+// Logout 退出登录
+func (s *Server) Logout(ctx context.Context, in *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	cache.DelUserInfo(in.SessionId)
+
+	return &pb.LogoutResponse{
+		Code: e.SUCCESS,
+		Msg:  e.GetMsg(e.SUCCESS),
 	}, nil
 }

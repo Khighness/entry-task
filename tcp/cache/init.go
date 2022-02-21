@@ -4,6 +4,7 @@ import (
 	"github.com/go-redis/redis"
 	"gopkg.in/ini.v1"
 	"log"
+	"time"
 )
 
 // @Author Chen Zikang
@@ -43,8 +44,9 @@ func connectRedis() {
 		Addr:         RedisAddr,
 		Password:     RedisAuth,
 		DB:           RedisDb,
-		PoolSize:     20,
-		MinIdleConns: 1,
+		PoolSize:     10000,
+		MinIdleConns: 1000,
+		IdleTimeout:  time.Hour,
 	})
 
 	if _, err := client.Ping().Result(); err != nil {
