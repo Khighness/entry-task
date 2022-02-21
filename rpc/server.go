@@ -14,7 +14,7 @@ import (
 
 // Server struct
 type Server struct {
-	addr string
+	addr      string
 	functions map[string]reflect.Value
 }
 
@@ -27,7 +27,7 @@ func NewServer(addr string) *Server {
 }
 
 // Run start server
-func (s *Server) Run()  {
+func (s *Server) Run() {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		log.Printf("Listen at %s err: %v \n", s.addr, err)

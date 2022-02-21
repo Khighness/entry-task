@@ -12,13 +12,13 @@ import (
 // @Author KHighness
 // @Update 2022-02-20
 
-func main()  {
+func main() {
 	gob.Register(public.ResponseQueryUser{})
 
 	ctx := context.Background()
 	config := &rpc.Config{
-		MaxOpenCount: 3,
-		MaxIdleCount: 2,
+		MaxOpenCount:  3,
+		MaxIdleCount:  2,
 		RpcServerAddr: "127.0.0.1:30000",
 	}
 	connPool := rpc.Init(ctx, config)
@@ -36,7 +36,7 @@ func main()  {
 		log.Printf("query result: %v %v\n", u.Id, u.Name)
 	}
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	go connPool.Release(permission1.RpcCli, ctx)
 	go connPool.Release(permission2.RpcCli, ctx)
 	go connPool.Release(permission3.RpcCli, ctx)

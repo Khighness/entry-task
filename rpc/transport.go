@@ -31,7 +31,7 @@ func (t *Transport) Send(req Data) error {
 
 	// set header field
 	binary.BigEndian.PutUint32(buf[:4], uint32(len(b)))
-	// set public field
+	// set content field
 	copy(buf[4:], b)
 
 	_, err = t.conn.Write(buf)
@@ -48,12 +48,12 @@ func (t *Transport) Receive() (Data, error) {
 
 	// read header field
 	dataLen := binary.BigEndian.Uint32(header)
-	// read public field
+	// read content field
 	data := make([]byte, dataLen)
 
 	_, err = io.ReadFull(t.conn, data)
 	if err != nil {
-		 return Data{}, err
+		return Data{}, err
 	}
 	// decode response from bytes
 	rsp, err := decode(data)
