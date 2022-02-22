@@ -29,10 +29,10 @@ func (c *Client) Call(name string, fptr interface{}) {
 
 		errorHandler := func(err error) []reflect.Value {
 			outArgs := make([]reflect.Value, container.Type().NumOut())
-			for i := 0; i < len(outArgs) - 1; i++ {
+			for i := 0; i < len(outArgs)-1; i++ {
 				outArgs[i] = reflect.Zero(container.Type().Out(i))
 			}
-			outArgs[len(outArgs) - 1] = reflect.ValueOf(&err).Elem()
+			outArgs[len(outArgs)-1] = reflect.ValueOf(&err).Elem()
 			return outArgs
 		}
 
@@ -43,28 +43,28 @@ func (c *Client) Call(name string, fptr interface{}) {
 		}
 		// send request to server
 		err := cliTransport.Send(Data{Name: name, Args: inArgs})
-		if err != nil { // local network error or decode error
+		if err != nil { // local network error or Decode error
 			return errorHandler(err)
 		}
 		// receive response from server
 		rsp, err := cliTransport.Receive()
-		if err != nil { // local network error or decode error
+		if err != nil { // local network error or Decode error
 			return errorHandler(errors.New(rsp.Err))
 		}
 		if len(rsp.Args) == 0 {
 			rsp.Args = make([]interface{}, container.Type().NumOut())
 		}
-		// unPackage response arguments
+		// un package response arguments
 		numOut := container.Type().NumOut()
 		outArgs := make([]reflect.Value, numOut)
 		for i := 0; i < numOut; i++ {
-			if i != numOut- 1 { // unPackage arguments
+			if i != numOut-1 { // un package arguments
 				if rsp.Args[i] == nil {
 					outArgs[i] = reflect.Zero(container.Type().Out(i))
 				} else {
 					outArgs[i] = reflect.ValueOf(rsp.Args[i])
 				}
-			} else { // unPackage error
+			} else { // un package error
 				outArgs[i] = reflect.Zero(container.Type().Out(i))
 			}
 		}

@@ -23,10 +23,10 @@ var (
 )
 
 // For test
-func init() {
-	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
-	connectMySQL(url)
-}
+//func init() {
+//	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
+//	connectMySQL(url)
+//}
 
 // Load 初始化MySQL
 func Load(file *ini.File) {

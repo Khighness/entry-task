@@ -20,10 +20,10 @@ func NewTransport(conn net.Conn) *Transport {
 	return &Transport{conn}
 }
 
-// Send Data
+// Send data
 func (t *Transport) Send(req Data) error {
-	// encode request into bytes
-	b, err := encode(req)
+	// Encode request into bytes
+	b, err := Encode(req)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func (t *Transport) Send(req Data) error {
 	return err
 }
 
-// Receive public
+// Receive data
 func (t *Transport) Receive() (Data, error) {
 	header := make([]byte, 4)
 	_, err := io.ReadFull(t.conn, header)
@@ -49,13 +49,13 @@ func (t *Transport) Receive() (Data, error) {
 	// read header field
 	dataLen := binary.BigEndian.Uint32(header)
 	// read content field
-	data := make([]byte, dataLen)
+	content := make([]byte, dataLen)
 
-	_, err = io.ReadFull(t.conn, data)
+	_, err = io.ReadFull(t.conn, content)
 	if err != nil {
 		return Data{}, err
 	}
-	// decode response from bytes
-	rsp, err := decode(data)
+	// Decode response from bytes
+	rsp, err := Decode(content)
 	return rsp, err
 }

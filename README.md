@@ -16,7 +16,7 @@
 entry-task
     ├─doc              文档
     ├─pb               proto
-    ├─rpc              todo
+    ├─rpc              rpc实现
     ├─tcp              TCP服务器
     │  ├─cache         redis缓存
     │  ├─common        初始化
@@ -55,6 +55,7 @@ $ vim /Users/zikang.chen/Docker/mysql/conf/my.cnf
 # ADD
 [mysqld]
 character-set-server=utf8
+max_connections=30000
 [client]
 default-character-set=utf8
 [mysql]
@@ -70,7 +71,7 @@ $ docker run --name mysql \
 mysql:8.0.20
 $ docker exec -it mysql bash
 $ mysql -u root -p KAG1823
-$ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KAG1823';
+$ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KANG1823';
 
 ```
 
@@ -88,34 +89,28 @@ port 6379
 #bind 0.0.0.0
 daemonize no
 protected-mode no
-requirepass KAG1823
-loglevel verbose
+requirepass KANG1823
+loglevel notice
 
 maxmemory-policy volatile-ttl
 slowlog-log-slower-than 2000
-maxclients 20000
-timeout 1800
+maxclients 30000
+timeout 3600
 
-dir ./
+dir /usr/local/redis/data/
 appendonly yes
 appendfilename "appendonly.aof"
-appendfsync everysec
+appendfsync no
 auto-aof-rewrite-min-size 128mb
 dbfilename dump.rdb
 save 900 1
-
-cluster-enabled no
-cluster-config-file nodes.conf
-cluster-node-timeout 5000
-cluster-announce-port 6379
-cluster-announce-bus-port 16379
 EOF
 
 $ docker run -d -p 6379:6379 --name redis \
 -v /Users/zikang.chen/Docker/redis/data:/data \
 -v /Users/zikang.chen/Docker/redis/conf/redis.conf:/etc/redis/redis.conf \
 redis:6.2.6 \
---requirepass "KAG1823" 
+--requirepass "KANG1823" 
 ```
 
 
@@ -159,8 +154,8 @@ $ go run web/main.go
 
 <table>
   <tr>
-    <td><a href="http://127.0.0.1:10000/login">登录</td>
-    <td><a href="http://127.0.0.1:10000/profile">个人</td>
+    <td><a href="http://127.0.0.1:10000/login">登录</a></td>
+    <td><a href="http://127.0.0.1:10000/profile">个人</a></td>
   </tr>
   <tr>
      <td width="50%" align="top"><img src="./doc/images/login.png"/></td>

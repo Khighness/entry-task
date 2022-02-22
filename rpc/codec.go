@@ -11,12 +11,13 @@ import (
 
 // Data presents the public transported between server and client
 type Data struct {
-	Name string         // service name
-	Args []interface{}  // request's or response's body
-	Err   string        // remote server error
+	Name string        // service name
+	Args []interface{} // request's or response's body
+	Err  string        // remote server error
 }
 
-func encode(data Data) ([]byte, error) {
+// Encode data
+func Encode(data Data) ([]byte, error) {
 	var buf bytes.Buffer
 	encoder := gob.NewEncoder(&buf)
 	if err := encoder.Encode(data); err != nil {
@@ -25,7 +26,8 @@ func encode(data Data) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func decode(b []byte) (Data, error) {
+// Decode data
+func Decode(b []byte) (Data, error) {
 	buf := bytes.NewBuffer(b)
 	decoder := gob.NewDecoder(buf)
 	var data Data

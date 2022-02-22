@@ -44,7 +44,7 @@ func connectRedis() {
 		Addr:         RedisAddr,
 		Password:     RedisAuth,
 		DB:           RedisDb,
-		PoolSize:     10000,
+		PoolSize:     30000,
 		MinIdleConns: 1000,
 		IdleTimeout:  time.Hour,
 	})

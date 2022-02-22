@@ -4,20 +4,20 @@
 ### 登录压测
 
 ```shell
-zikang.chen@C02GM1FFMD6M ben % wrk -t6 -c200 -d10s --latency -s login.lua "http://127.0.0.1:10000/login" 
+wrk -t6 -c200 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
 Running 10s test @ http://127.0.0.1:10000/login
   6 threads and 200 connections
-^C  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   195.99ms  224.37ms   1.01s    87.06%
-    Req/Sec   225.77    112.20   646.00     67.66%
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   161.07ms  173.74ms   1.00s    87.25%
+    Req/Sec   273.15     74.41   535.00     74.33%
   Latency Distribution
-     50%  106.23ms
-     75%  256.62ms
-     90%  529.80ms
-     99%    1.00s 
-  9842 requests in 7.34s, 2.51MB read
-  Socket errors: connect 0, read 55, write 0, timeout 0
-Requests/sec:   1340.86
-Transfer/sec:    349.53KB
+     50%   97.70ms
+     75%  191.52ms
+     90%  396.14ms
+     99%  826.48ms
+  16275 requests in 10.04s, 9.07MB read
+  Socket errors: connect 0, read 59, write 0, timeout 0
+Requests/sec:   1620.53
+Transfer/sec:      0.90MB
 ```
 

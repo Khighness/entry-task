@@ -12,6 +12,8 @@ import (
 // @Author KHighness
 // @Update 2022-02-20
 
+var QueryUser func(int64) (public.ResponseQueryUser, error)
+
 func main() {
 	gob.Register(public.ResponseQueryUser{})
 
@@ -26,10 +28,9 @@ func main() {
 	permission2, _ := connPool.Achieve(ctx)
 	permission3, _ := connPool.Achieve(ctx)
 	go connPool.Achieve(ctx)
-	var correctQuery func(int64) (public.ResponseQueryUser, error)
 
-	permission1.RpcCli.Call("queryUser", &correctQuery)
-	u, err := correctQuery(1)
+	permission1.RpcCli.Call("queryUser", &QueryUser)
+	u, err := QueryUser(1)
 	if err != nil {
 		log.Printf("query error: %v\n", err)
 	} else {

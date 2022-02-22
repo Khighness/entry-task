@@ -1,4 +1,4 @@
-package api
+package controller
 
 import (
 	"context"
@@ -21,13 +21,15 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
+type UserController struct{}
+
 // Index 测试
-func Index(w http.ResponseWriter, r *http.Request) {
+func (uerController *UserController) Index(w http.ResponseWriter, r *http.Request) {
 	view.HandleError(w, "Error", "机房失火断电<br>节点故障宕机<br>服务熔断降级", "Sign In", view.LoginUrl)
 }
 
 // Register 用户注册
-func Register(w http.ResponseWriter, r *http.Request) {
+func (uerController *UserController) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method == common.Get {
 		view.DirectRegister(w)
 	} else if r.Method == common.Post {
@@ -35,7 +37,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		username := strings.Join(r.Form["username"], "")
 		password := strings.Join(r.Form["password"], "")
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		response, err := grpc.Client.Register(ctx, &pb.RegisterRequest{
 			Username: username,
@@ -56,7 +58,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login 用户登录
-func Login(w http.ResponseWriter, r *http.Request) {
+func (uerController *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == common.Get {
 		view.DirectLogin(w)
 	} else if r.Method == common.Post {
@@ -64,8 +66,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		username := strings.Join(r.Form["username"], "")
 		password := strings.Join(r.Form["password"], "")
 
-		start := time.Now()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		rpcStart := time.Now()
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		response, err := grpc.Client.Login(ctx, &pb.LoginRequest{
 			Username: username,
@@ -81,7 +83,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			view.HandleError(w, "登录失败", response.Msg, "Sign In", view.LoginUrl)
 			return
 		}
+		log.Println("rpc time:", time.Since(rpcStart))
 
+		viewStart := time.Now()
 		tokenCookie := &http.Cookie{
 			Name:     common.CookieTokenKey,
 			Value:    response.SessionId,
@@ -91,13 +95,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 		http.SetCookie(w, tokenCookie)
 		http.Redirect(w, r, view.ProfileUrl, http.StatusFound)
-		log.Println("login time:", time.Since(start))
+		log.Println("view time:", time.Since(viewStart))
 	}
 }
 
 // GetProfile 获取信息
-func GetProfile(w http.ResponseWriter, r *http.Request) {
-	user, err := getUserFromCookie(r)
+func (uerController *UserController) GetProfile(w http.ResponseWriter, r *http.Request) {
+	user, err := uerController.getUserFromCookie(r)
 	if err != nil {
 		view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage, "Sign In", view.LoginUrl)
 		return
@@ -110,7 +114,7 @@ func GetProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 // ShowAvatar 显示头像
-func ShowAvatar(w http.ResponseWriter, r *http.Request) {
+func (uerController *UserController) ShowAvatar(w http.ResponseWriter, r *http.Request) {
 	if r.Method == common.Get {
 		file, err := os.Open(common.FileStoragePath + r.URL.Path)
 		if err != nil {
@@ -124,9 +128,9 @@ func ShowAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateInfo 更新信息
-func UpdateInfo(w http.ResponseWriter, r *http.Request) {
+func (uerController *UserController) UpdateInfo(w http.ResponseWriter, r *http.Request) {
 	if r.Method == common.Get {
-		user, err := getUserFromCookie(r)
+		user, err := uerController.getUserFromCookie(r)
 		if err != nil {
 			view.HandleError(w, "更新失败", err.Error(), "Update Profile", view.UpdateUrl)
 			return
@@ -152,7 +156,7 @@ func UpdateInfo(w http.ResponseWriter, r *http.Request) {
 
 			// 存储文件
 			defer uploadFile.Close()
-			createFile, err := os.OpenFile(common.FileStoragePath+common.RelativeAvatarPath+avatarName, os.O_WRONLY|os.O_CREATE, 0777)
+			createFile, err := os.OpenFile(common.FileStoragePath+common.RelativeAvatarPath+avatarName, os.O_WRONLY|os.O_CREATE, 0666)
 			defer createFile.Close()
 			_, err = io.Copy(createFile, uploadFile)
 			if err != nil {
@@ -162,7 +166,7 @@ func UpdateInfo(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// 更新数据库
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		response, err := grpc.Client.UpdateProfile(ctx, &pb.UpdateProfileRequest{
 			SessionId:      cookie.Value,
@@ -184,7 +188,7 @@ func UpdateInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 // Logout 退出登录
-func Logout(w http.ResponseWriter, r *http.Request) {
+func (uerController *UserController) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie(common.CookieTokenKey)
 	if err != nil {
 		http.Redirect(w, r, view.LoginUrl, http.StatusFound)
@@ -206,13 +210,13 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 // getUserFromCookie 根据cookie获取用户信息
-func getUserFromCookie(r *http.Request) (user *common.UserInfo, err error) {
+func (uerController *UserController) getUserFromCookie(r *http.Request) (user *common.UserInfo, err error) {
 	cookie, err := r.Cookie(common.CookieTokenKey)
 	if err != nil {
 		return nil, errors.New(common.CookieErrorMessage)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 	response, err := grpc.Client.GetProfile(ctx, &pb.GetProfileRequest{SessionId: cookie.Value})
 	if err != nil || response.Code != common.RpcSuccessCode {

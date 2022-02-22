@@ -34,7 +34,7 @@ BEGIN
     SET @user_prefix = 'user_';
     SET autocommit = 0;
     REPEAT
-INSERT INTO user(id,username,password,profile_picture) VALUES((start_id+i),CONCAT(@user_prefix,start_id+i),'e10adc3949ba59abbe56e057f20f883e','http://127.0.0.1:10000/avatar/default.jpg');
+        INSERT INTO entry_task.user(id,username,password,profile_picture) VALUES((start_id+i),CONCAT(@user_prefix,start_id+i),'e10adc3949ba59abbe56e057f20f883e','http://127.0.0.1:10000/avatar/default.jpg');
         SET i = i + 1;
     UNTIL i = max_num
 END REPEAT;
@@ -42,12 +42,12 @@ COMMIT;
 END $$
 
 -- 插入1000,0000条数据
-call insert_user(11, 10000000)
+call insert_user(3, 10000000)
 
 
 # 最大连接数
 show variables like '%max_connections%';
-# 已使用连接数
+# 服务器响应的最大连接数
 show global status like 'Max_used_connections';
 # 设置最大连接数
 set global max_connections = 10000;

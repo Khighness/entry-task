@@ -21,8 +21,8 @@ type Server struct {
 // NewServer create a new server
 func NewServer(addr string) *Server {
 	return &Server{
-		addr:      addr,
-		functions: make(map[string]reflect.Value),
+		addr:      addr,                           // the net address of server
+		functions: make(map[string]reflect.Value), // key: the name of func , value: reflect Value of function
 	}
 }
 
@@ -54,9 +54,9 @@ func (s *Server) Run() {
 					}
 					return
 				}
-				// get method by name
+				// get function by name
 				f, ok := s.functions[req.Name]
-				// if method requested does not exist
+				// if function requested does not exist
 				if !ok {
 					e := fmt.Sprintf("Func %s does not exist", req.Name)
 					log.Printf(e)
@@ -67,12 +67,12 @@ func (s *Server) Run() {
 				}
 				log.Printf("Func %s is called\n", req.Name)
 
-				// unPackage request arguments
+				// un package function arguments
 				inArgs := make([]reflect.Value, len(req.Args))
 				for i := range req.Args {
 					inArgs[i] = reflect.ValueOf(req.Args[i])
 				}
-				// invoke requested method
+				// invoke requested function
 				out := f.Call(inArgs)
 				// package response arguments
 				outArgs := make([]interface{}, len(out)-1)
@@ -96,7 +96,7 @@ func (s *Server) Run() {
 	}
 }
 
-// Register a method via name
+// Register register a function via name
 func (s *Server) Register(name string, f interface{}) {
 	if _, ok := s.functions[name]; ok {
 		return
