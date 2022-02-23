@@ -4,12 +4,10 @@ package common
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-var ServerAddr string
-
-// SessionIdBytes sessionId字节数组长度
+// TokenBytes token字节数组长度
 // DefaultProfilePicture 注册的默认图片
 const (
-	SessionIdBytes = 16
+	TokenBytes            = 16
 	DefaultProfilePicture = "http://127.0.0.1:10000/avatar/default.jpg"
 )
 

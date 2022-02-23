@@ -35,12 +35,12 @@ message LoginRequest {
 message LoginResponse {
   int32 code = 1;
   string msg = 2;
-  string session_id = 3;
+  string token = 3;
   User user = 5;
 }
 
 message CheckTokenRequest {
-  string session_id = 1;
+  string token = 1;
 }
 
 message CheckTokenResponse {
@@ -49,7 +49,7 @@ message CheckTokenResponse {
 }
 
 message GetProfileRequest {
-  string session_id = 1;
+  string token = 1;
 }
 
 message GetProfileResponse {
@@ -59,7 +59,7 @@ message GetProfileResponse {
 }
 
 message UpdateProfileRequest {
-  string session_id = 1;
+  string token = 1;
   string username = 2;
   string profile_picture = 4;
 }
@@ -70,7 +70,7 @@ message UpdateProfileResponse {
 }
 
 message LogoutRequest {
-  string session_id = 1;
+  string token = 1;
 }
 
 message LogoutResponse {

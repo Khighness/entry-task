@@ -41,13 +41,22 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// 校验sessionId是否合法
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 		defer cancel()
-		response, err := grpc.Client.CheckToken(ctx, &pb.CheckTokenRequest{SessionId: cookie.Value})
+		permission, err := grpc.Pool.Achieve(ctx)
+		if err != nil {
+			log.Println(err)
+			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
+			return
+		}
+		ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		response, err := permission.RpcCli.CheckToken(ctx, &pb.CheckTokenRequest{Token: cookie.Value})
 		if err != nil {
 			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage, "Sign In", view.LoginUrl)
 			return
 		}
+		go grpc.Pool.Release(permission.RpcCli, context.Background())
 
 		if response.Code == common.RpcSuccessCode {
 			// 认证成功，继续处理业务

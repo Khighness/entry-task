@@ -10,15 +10,15 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-// GenerateSessionId 生成sessionId
+// GenerateToken 生成token
 // '0' 48
 // 'A' 65
-func GenerateSessionId() string {
+func GenerateToken() string {
 	//var sessionId bytes.Buffer
 
 	// 生成随机16位byte
-	buf := make([]byte, common.SessionIdBytes)
-	for i := 0; i < common.SessionIdBytes; i++ {
+	buf := make([]byte, common.TokenBytes)
+	for i := 0; i < common.TokenBytes; i++ {
 		buf[i] = byte(Uint32())
 	}
 
@@ -30,7 +30,7 @@ func GenerateSessionId() string {
 	return hex.EncodeToString(buf) //test: 670ns
 
 	// 转换为十六进制大写字符串
-	//for i := 0; i < common.SessionIdBytes; i++ {
+	//for i := 0; i < common.TokenBytes; i++ {
 	//	var b1 byte = (buf[i] & 0xf0) >> 4
 	//	var b2 byte = buf[i] & 0x0f
 	//	if b1 < 10 {

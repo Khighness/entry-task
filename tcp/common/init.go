@@ -11,6 +11,10 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-16
 
+var (
+	ServerAddr string
+)
+
 // Load 初始化
 func Load() {
 	file, err := ini.Load("./tcp/conf/conf.ini")
@@ -24,7 +28,7 @@ func Load() {
 	cache.Load(file)
 }
 
-// loadServerConfig 导入服务配置
+// Load 导入配置
 func loadServerConfig(file *ini.File) {
 	ServerAddr = file.Section("server").Key("ServerAddr").String()
 }

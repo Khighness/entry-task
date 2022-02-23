@@ -3,12 +3,7 @@ package grpc
 import (
 	"context"
 	"entry/pb"
-	"entry/web/common"
 	"errors"
-	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"log"
 	"sync"
 	"time"
 )
@@ -16,6 +11,9 @@ import (
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-22
+
+// TODO: 连接 maxLifeTime
+// TODO: 监控连接池，崩溃修复
 
 type ConnPool struct {
 	lock sync.Mutex // 锁
@@ -30,16 +28,14 @@ type ConnPool struct {
 	initCount     int           // 初始化连接数
 	macOpenCount  int           // 最大连接数
 	maxIdleCount  int           // 最大空闲连接数
-	maxLifeTime   time.Duration // 连接最大存活时间
 	maxWaitTime   time.Duration // 任务最大等待时间
 	rpcServerAddr string        // 远程服务器地址
 }
 
 type Permission struct {
 	NextConnIndex
-	RpcCli      pb.UserServiceClient
-	CreateAt    time.Time
-	MaxLifeTime time.Duration
+	RpcCli   pb.UserServiceClient
+	CreateAt time.Time
 }
 
 type NextConnIndex struct {
@@ -57,13 +53,11 @@ type Config struct {
 
 var nowFunc = time.Now
 
-//  load 初始化
+// NewPool 创建一个连接池
 func NewPool(ctx context.Context, config *Config) (conn *ConnPool) {
 	if config.InitCount > 10000 || config.InitCount > config.MaxOpenCount {
 		return nil
 	}
-
-	log.Println("rpc server:", config.RpcServerAddr)
 
 	pool := &ConnPool{
 		connPool:      []int{},
@@ -73,25 +67,20 @@ func NewPool(ctx context.Context, config *Config) (conn *ConnPool) {
 		availableConn: make(map[int]Permission),
 		macOpenCount:  config.MaxOpenCount,
 		maxIdleCount:  config.MaxOpenCount,
-		maxLifeTime:   config.MaxLifeTime,
 		maxWaitTime:   config.MaxWaitTime,
 		rpcServerAddr: config.RpcServerAddr,
 	}
 
 	for i := 0; i < config.InitCount; i++ {
 		nextConnIndex := getNextConnIndex(pool)
-		conn, err := grpc.Dial(pool.rpcServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		client, err := NewClient(pool.rpcServerAddr)
 		if err != nil {
-			e := fmt.Sprintf("Failed to connect to rpc server %s, err: %s\n", pool.rpcServerAddr, err)
-			log.Printf(e)
 			return nil
 		}
-		client := pb.NewUserServiceClient(conn)
 		permission := Permission{
 			NextConnIndex: NextConnIndex{nextConnIndex},
 			RpcCli:        client,
 			CreateAt:      nowFunc(),
-			MaxLifeTime:   pool.maxLifeTime,
 		}
 		pool.availableConn[nextConnIndex] = permission
 	}
@@ -108,7 +97,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 	case <-ctx.Done():
 		// context取消或者超时，退出
 		pool.lock.Unlock()
-		return Permission{}, errors.New("fail to create a new connection, context canceled")
+		return Permission{}, errors.New("fail to create a new connection, cause: context canceled")
 	}
 
 	// (1) 连接池不为空，直接获取连接
@@ -122,7 +111,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		}
 
 		delete(pool.availableConn, popReqKey)
-		log.Printf("Achieve connection[fromPool] successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		//log.Printf("[grpc pool] Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 		pool.lock.Unlock()
 
 		return popPermission, nil
@@ -139,13 +128,13 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 
 		select {
 		case <-time.After(pool.maxWaitTime):
-			log.Println("Achieve connection failed, cause: wait timeout")
+			//log.Println("[grpc pool] Achieve connection failed, cause: wait timeout")
 			return
 		case ret, ok := <-req:
 			if !ok {
 				return Permission{}, errors.New("get connection failed, cause: no available connection release")
 			}
-			log.Printf("Achieve connection[released] successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+			//log.Printf("[grpc pool] Achieve connection(released) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 			return ret, nil
 		}
 	}
@@ -155,20 +144,16 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 	nextConnIndex := getNextConnIndex(pool)
 	pool.lock.Unlock()
 
-	conn, err := grpc.Dial(common.RpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := NewClient(pool.rpcServerAddr)
 	if err != nil {
-		e := fmt.Sprintf("Failed to connect to server %s, err: %s\n", pool.rpcServerAddr, err)
-		log.Printf(e)
-		return Permission{}, errors.New(e)
+		return Permission{}, err
 	}
-	client := pb.NewUserServiceClient(conn)
 	permission = Permission{
 		NextConnIndex: NextConnIndex{nextConnIndex},
 		RpcCli:        client,
 		CreateAt:      nowFunc(),
-		MaxLifeTime:   pool.maxLifeTime,
 	}
-	log.Printf("Achieve connection[created], openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+	//log.Printf("[grpc pool] Achieve connection(created), openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 	return permission, nil
 }
 
@@ -196,12 +181,11 @@ func (pool *ConnPool) Release(client pb.UserServiceClient, ctx context.Context) 
 			NextConnIndex: NextConnIndex{reqKey},
 			RpcCli:        client,
 			CreateAt:      nowFunc(),
-			MaxLifeTime:   time.Second * 5,
 		}
 		req <- permission
 		delete(pool.waitQueue, reqKey)
 		pool.waitCount--
-		log.Printf("Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		//log.Printf("[grpc pool] Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 	} else {
 		// (2) 没有等待任务，将连接放入连接池
 		if pool.openCount > 0 {
@@ -212,10 +196,9 @@ func (pool *ConnPool) Release(client pb.UserServiceClient, ctx context.Context) 
 					NextConnIndex: NextConnIndex{nextConnIndex},
 					RpcCli:        client,
 					CreateAt:      nowFunc(),
-					MaxLifeTime:   pool.maxLifeTime,
 				}
 				pool.availableConn[nextConnIndex] = permission
-				log.Printf("Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+				//log.Printf("[grpc pool] Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 			}
 		}
 	}

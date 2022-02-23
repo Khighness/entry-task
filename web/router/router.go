@@ -18,15 +18,14 @@ func Start() {
 	userController := controller.UserController{}
 	http.HandleFunc("/", userController.Index)
 	http.HandleFunc(view.RegisterUrl, middleware.TimeMiddleWare(userController.Register))
-	//http.HandleFunc(view.LoginUrl, middleware.TimeMiddleWare(controller.Login))
-	http.HandleFunc(view.LoginUrl, userController.Login)
+	http.HandleFunc(view.LoginUrl, middleware.TimeMiddleWare(userController.Login))
 	http.HandleFunc(view.ProfileUrl, middleware.TimeMiddleWare(middleware.TokenMiddleWare(userController.GetProfile)))
 	http.HandleFunc(view.AvatarUrl, middleware.TimeMiddleWare(userController.ShowAvatar))
 	http.HandleFunc(view.UpdateUrl, middleware.TimeMiddleWare(middleware.TokenMiddleWare(userController.UpdateInfo)))
 	http.HandleFunc(view.LogoutUrl, middleware.TimeMiddleWare(userController.Logout))
-	log.Printf("Web server is serving at [%s]\n", common.HttpAddr)
-	err := http.ListenAndServe(common.HttpAddr, nil)
+	log.Printf("Web server is serving at [%s]\n", common.HttpServerAddr)
+	err := http.ListenAndServe(common.HttpServerAddr, nil)
 	if err != nil {
-		log.Fatalf("Failed to start web server at [%s]\n", common.HttpAddr)
+		log.Fatalf("Failed to start web server at [%s]\n", common.HttpServerAddr)
 	}
 }

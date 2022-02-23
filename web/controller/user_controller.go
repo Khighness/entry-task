@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -37,12 +36,18 @@ func (uerController *UserController) Register(w http.ResponseWriter, r *http.Req
 		username := strings.Join(r.Form["username"], "")
 		password := strings.Join(r.Form["password"], "")
 
+		permission, err := grpc.Pool.Achieve(context.Background())
+		if err != nil {
+			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
+			return
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		response, err := grpc.Client.Register(ctx, &pb.RegisterRequest{
+		response, err := permission.RpcCli.Register(ctx, &pb.RegisterRequest{
 			Username: username,
 			Password: password,
 		})
+		go grpc.Pool.Release(permission.RpcCli, context.Background())
 
 		if err != nil {
 			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
@@ -58,6 +63,7 @@ func (uerController *UserController) Register(w http.ResponseWriter, r *http.Req
 }
 
 // Login 用户登录
+// TODO 防止XSRF攻击
 func (uerController *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method == common.Get {
 		view.DirectLogin(w)
@@ -66,16 +72,20 @@ func (uerController *UserController) Login(w http.ResponseWriter, r *http.Reques
 		username := strings.Join(r.Form["username"], "")
 		password := strings.Join(r.Form["password"], "")
 
-		rpcStart := time.Now()
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		permission, err := grpc.Pool.Achieve(context.Background())
+		if err != nil {
+			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		response, err := grpc.Client.Login(ctx, &pb.LoginRequest{
+		response, err := permission.RpcCli.Login(ctx, &pb.LoginRequest{
 			Username: username,
 			Password: password,
 		})
+		go grpc.Pool.Release(permission.RpcCli, context.Background())
 
 		if err != nil {
-			log.Println(err)
 			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign In", view.LoginUrl)
 			return
 		}
@@ -83,19 +93,16 @@ func (uerController *UserController) Login(w http.ResponseWriter, r *http.Reques
 			view.HandleError(w, "登录失败", response.Msg, "Sign In", view.LoginUrl)
 			return
 		}
-		log.Println("rpc time:", time.Since(rpcStart))
 
-		viewStart := time.Now()
 		tokenCookie := &http.Cookie{
 			Name:     common.CookieTokenKey,
-			Value:    response.SessionId,
+			Value:    response.Token,
 			Path:     "/",
 			Expires:  time.Now().Add(common.CookieTokenTimeout),
 			HttpOnly: false,
 		}
 		http.SetCookie(w, tokenCookie)
 		http.Redirect(w, r, view.ProfileUrl, http.StatusFound)
-		log.Println("view time:", time.Since(viewStart))
 	}
 }
 
@@ -152,7 +159,7 @@ func (uerController *UserController) UpdateInfo(w http.ResponseWriter, r *http.R
 			}
 
 			avatarName := fmt.Sprintf("%d-%s", time.Now().Unix(), header.Filename)
-			profilePicture = fmt.Sprintf("http://%s/%s/%s", common.HttpAddr, common.RelativeAvatarPath, avatarName)
+			profilePicture = fmt.Sprintf("http://%s/%s%s", common.HttpServerAddr, common.RelativeAvatarPath, avatarName)
 
 			// 存储文件
 			defer uploadFile.Close()
@@ -166,13 +173,19 @@ func (uerController *UserController) UpdateInfo(w http.ResponseWriter, r *http.R
 		}
 
 		// 更新数据库
+		permission, err := grpc.Pool.Achieve(context.Background())
+		if err != nil {
+			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
+			return
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		response, err := grpc.Client.UpdateProfile(ctx, &pb.UpdateProfileRequest{
-			SessionId:      cookie.Value,
+		response, err := permission.RpcCli.UpdateProfile(ctx, &pb.UpdateProfileRequest{
+			Token:          cookie.Value,
 			Username:       username,
 			ProfilePicture: profilePicture,
 		})
+		go grpc.Pool.Release(permission.RpcCli, context.Background())
 
 		if err != nil {
 			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Update Profile", view.UpdateUrl)
@@ -194,13 +207,20 @@ func (uerController *UserController) Logout(w http.ResponseWriter, r *http.Reque
 		http.Redirect(w, r, view.LoginUrl, http.StatusFound)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	permission, err := grpc.Pool.Achieve(context.Background())
+	if err != nil {
+		view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	response, err := grpc.Client.Logout(ctx, &pb.LogoutRequest{SessionId: cookie.Value})
+	response, err := permission.RpcCli.Logout(ctx, &pb.LogoutRequest{Token: cookie.Value})
 	if err != nil || response.Code != common.RpcSuccessCode {
 		view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign In", view.LoginUrl)
 		return
 	}
+	go grpc.Pool.Release(permission.RpcCli, context.Background())
+
 	removeCookie := &http.Cookie{
 		Name:   common.CookieTokenKey,
 		MaxAge: -1,
@@ -216,12 +236,17 @@ func (uerController *UserController) getUserFromCookie(r *http.Request) (user *c
 		return nil, errors.New(common.CookieErrorMessage)
 	}
 
+	permission, err := grpc.Pool.Achieve(context.Background())
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	response, err := grpc.Client.GetProfile(ctx, &pb.GetProfileRequest{SessionId: cookie.Value})
+	response, err := permission.RpcCli.GetProfile(ctx, &pb.GetProfileRequest{Token: cookie.Value})
 	if err != nil || response.Code != common.RpcSuccessCode {
 		return nil, errors.New(common.DefaultErrorMessage)
 	}
+	go grpc.Pool.Release(permission.RpcCli, context.Background())
 
 	return &common.UserInfo{
 		Id:             response.User.Id,

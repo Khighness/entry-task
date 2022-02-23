@@ -7,8 +7,8 @@ import "time"
 // @Since  2022-02-15
 
 var (
-	HttpAddr string
-	RpcAddr  string
+	HttpServerAddr string
+	RpcServerAddr  string
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 const (
 	FileStoragePath    = "./web/public/"
 	RelativeAvatarPath = "avatar/"
-	CookieTokenKey     = "sessionId"
+	CookieTokenKey     = "token"
 	CookieTokenTimeout = 24 * time.Hour
 )
 
