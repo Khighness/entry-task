@@ -3,6 +3,7 @@ package server
 import (
 	"entry/pb"
 	"entry/tcp/common"
+	"entry/tcp/logging"
 	"entry/tcp/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -37,9 +38,9 @@ func Start() {
 	s := grpc.NewServer(grpc.KeepaliveEnforcementPolicy(enforcementPolicy), grpc.KeepaliveParams(serverParameters))
 	pb.RegisterUserServiceServer(s, &service.Server{})
 	reflection.Register(s)
-	log.Printf("GRPC tcp server is serving at [%s]", common.ServerAddr)
+	logging.Log.Printf("GRPC tcp server is serving at [%s]", common.ServerAddr)
 
 	if err = s.Serve(listener); err != nil {
-		log.Fatalf("GRPC tcp server failed to serve at [%s]: %s\n", common.ServerAddr, err)
+		logging.Log.Fatalf("GRPC tcp server failed to serve at [%s]: %s", common.ServerAddr, err)
 	}
 }

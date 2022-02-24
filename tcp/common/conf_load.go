@@ -3,8 +3,8 @@ package common
 import (
 	"entry/tcp/cache"
 	"entry/tcp/model"
+	"entry/web/logging"
 	"gopkg.in/ini.v1"
-	"log"
 )
 
 // @Author Chen Zikang
@@ -19,9 +19,9 @@ var (
 func Load() {
 	file, err := ini.Load("./tcp/conf/conf.ini")
 	if err != nil {
-		log.Fatalln("Load config file error, please check file path:", err)
+		logging.Log.Fatalln("Load config file error, please check file path:", err)
 	} else {
-		log.Println("Loading config file ...")
+		logging.Log.Infoln("Loading config file ...")
 	}
 	loadServerConfig(file)
 	model.Load(file)

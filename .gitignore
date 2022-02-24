@@ -4,6 +4,10 @@
 # Golang Module
 go.sum
 
+# log
+log/
+.log
+
 # Binaries for programs and plugins
 *.exe
 *.exe~

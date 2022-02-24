@@ -1,8 +1,8 @@
 package common
 
 import (
+	"entry/web/logging"
 	"gopkg.in/ini.v1"
-	"log"
 )
 
 // @Author Chen Zikang
@@ -13,9 +13,9 @@ import (
 func Load() {
 	file, err := ini.Load("./web/conf/conf.ini")
 	if err != nil {
-		log.Fatalln("Load config file error, please check file path:", err)
+		logging.Log.Fatalln("Load config file error, please check file path:", err)
 	} else {
-		log.Println("Loading config file ...")
+		logging.Log.Infoln("Loading config file ...")
 	}
 	loadServerConfig(file)
 	LoadRpcConfig(file)

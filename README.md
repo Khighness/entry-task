@@ -21,6 +21,7 @@ entry-task
     │  ├─cache         redis缓存
     │  ├─common        初始化
     │  ├─conf          tcp配置
+    │  ├─logging       日志
     │  ├─mapper        持久化
     │  ├─model         mysql数据库
     │  ├─server        服务器
@@ -31,10 +32,11 @@ entry-task
         ├─common       初始化
         ├─conf         web配置
         ├─grpc         rpc调用
+        ├─logging      日志
         ├─middleware   web中间件
         ├─public       静态文件
         ├─router       web路由
-        └─view         模板解析
+        └─view         处理结果
 ```
 
 
@@ -140,25 +142,3 @@ $ go run tcp/main.go
 ```shell
 $ go run web/main.go
 ```
-
-
-
-测试账号
-
-| username  | password |
-| --------- |----------|
-| Khighness | czk911   |
-| FlowerK   | czk911   |
-
-效果预览
-
-<table>
-  <tr>
-    <td><a href="http://127.0.0.1:10000/login">登录</a></td>
-    <td><a href="http://127.0.0.1:10000/profile">个人</a></td>
-  </tr>
-  <tr>
-     <td width="50%" align="top"><img src="./doc/images/login.png"/></td>
-     <td width="50%" align="top"><img src="./doc/images/profile.png"/></td>
-  </tr>
-</table>

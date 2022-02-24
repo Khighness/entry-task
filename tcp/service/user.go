@@ -6,10 +6,10 @@ import (
 	"entry/tcp/cache"
 	"entry/tcp/common"
 	"entry/tcp/common/e"
+	"entry/tcp/logging"
 	"entry/tcp/mapper"
 	"entry/tcp/model"
 	"entry/tcp/util"
-	"log"
 	"time"
 )
 
@@ -83,7 +83,7 @@ func (s *Server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 		}, nil
 	}
 
-	log.Printf("[user register] userId: %v, username：%s\n", id, in.Username)
+	logging.Log.Infof("[user register] userId: %v, username：%s", id, in.Username)
 	return &pb.RegisterResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
@@ -122,7 +122,7 @@ func (s *Server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginRespo
 		ProfilePicture: dbUser.ProfilePicture,
 	})
 
-	log.Printf("[user login] userId: %d, username: %s\n", dbUser.Id, in.Username)
+	logging.Log.Infof("[user login] userId: %d, username: %s", dbUser.Id, in.Username)
 	return &pb.LoginResponse{
 		Code:  int32(status),
 		Msg:   e.GetMsg(status),
@@ -138,7 +138,7 @@ func (s *Server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginRespo
 // CheckToken 检查token
 func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
 	var status = e.SUCCESS
-	_, err := userCache.GetUserId(in.Token)
+	id, err := userCache.GetUserId(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
 		return &pb.CheckTokenResponse{
@@ -146,7 +146,7 @@ func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.
 			Msg:  e.GetMsg(status),
 		}, nil
 	}
-	//log.Printf("[check token] token：%s，id：%d\n", in.SessionId, id)
+	logging.Log.Infof("[check token] token：%s，id：%d", in.Token, id)
 	return &pb.CheckTokenResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
@@ -267,7 +267,7 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 					Msg:  e.GetMsg(status),
 				}, nil
 			}
-			log.Printf("[user update] userId：%d，username：%s\n", caUser.Id, in.Username)
+			logging.Log.Infof("[user update] userId：%d，username：%s", caUser.Id, in.Username)
 		}
 	}
 
@@ -288,7 +288,7 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 				Msg:  e.GetMsg(status),
 			}, nil
 		}
-		log.Printf("[user update] userId：%d，avatar：%s\n", caUser.Id, in.ProfilePicture)
+		logging.Log.Infof("[user update] userId：%d，avatar：%s", caUser.Id, in.ProfilePicture)
 	}
 
 	return &pb.UpdateProfileResponse{
@@ -299,8 +299,8 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 
 // Logout 退出登录
 func (s *Server) Logout(ctx context.Context, in *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	logging.Log.Infof("[user logout] token：%s", in.Token)
 	userCache.DelUserInfo(in.Token)
-
 	return &pb.LogoutResponse{
 		Code: e.SUCCESS,
 		Msg:  e.GetMsg(e.SUCCESS),

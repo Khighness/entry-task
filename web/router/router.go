@@ -3,9 +3,9 @@ package router
 import (
 	"entry/web/common"
 	"entry/web/controller"
+	"entry/web/logging"
 	"entry/web/middleware"
 	"entry/web/view"
-	"log"
 	"net/http"
 )
 
@@ -23,9 +23,9 @@ func Start() {
 	http.HandleFunc(view.ShowAvatarUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.ShowAvatar)))
 	http.HandleFunc(view.UploadAvatarUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(middleware.TokenMiddleWare(userController.UploadAvatar))))
 	http.HandleFunc(view.LogoutUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.Logout)))
-	log.Printf("Web server is serving at [%s]\n", common.HttpServerAddr)
+	logging.Log.Infof("Web server is serving at [%s]", common.HttpServerAddr)
 	err := http.ListenAndServe(common.HttpServerAddr, nil)
 	if err != nil {
-		log.Fatalf("Failed to start web server at [%s]\n", common.HttpServerAddr)
+		logging.Log.Fatalf("Failed to start web server at [%s]", common.HttpServerAddr)
 	}
 }

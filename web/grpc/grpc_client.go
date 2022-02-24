@@ -2,10 +2,10 @@ package grpc
 
 import (
 	"entry/pb"
+	"entry/web/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
-	"log"
 	"time"
 )
 
@@ -21,7 +21,7 @@ func NewClient(rpcServerAddr string) (pb.UserServiceClient, error) {
 	}
 	cc, err := grpc.Dial(rpcServerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithKeepaliveParams(clientParameters))
 	if err != nil {
-		log.Printf("[grpc client] Failed to connect to rpc server %s, err: %s\n", rpcServerAddr, err)
+		logging.Log.Warnf("[grpc client] Failed to connect to rpc server %s, err: %s", rpcServerAddr, err)
 		return nil, err
 	}
 	return pb.NewUserServiceClient(cc), nil

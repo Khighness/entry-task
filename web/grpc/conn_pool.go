@@ -98,6 +98,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 	case <-ctx.Done():
 		// context取消或者超时，退出
 		pool.lock.Unlock()
+		logging.Log.Warnf("Achieve connection failed, cause: context canceled")
 		return Permission{}, errors.New("fail to create a new connection, cause: context canceled")
 	}
 
@@ -112,7 +113,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		}
 
 		delete(pool.availableConn, popReqKey)
-		logging.Log.Debugf("[grpc pool] Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		logging.Log.Debugf("[grpc pool] Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
 		pool.lock.Unlock()
 
 		return popPermission, nil
@@ -129,13 +130,13 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 
 		select {
 		case <-time.After(pool.maxWaitTime):
-			//log.Println("[grpc pool] Achieve connection failed, cause: wait timeout")
+			logging.Log.Warnf("Achieve connection failed, cause: wait timeout")
 			return
 		case ret, ok := <-req:
 			if !ok {
 				return Permission{}, errors.New("get connection failed, cause: no available connection release")
 			}
-			logging.Log.Debugf("[grpc pool] Achieve connection(released) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+			logging.Log.Debugf("Achieve connection(released) successfully, openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
 			return ret, nil
 		}
 	}
@@ -154,7 +155,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		RpcCli:        client,
 		CreateAt:      nowFunc(),
 	}
-	logging.Log.Debugf("[grpc pool] Achieve connection(created), openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+	logging.Log.Debugf("Achieve connection(created), openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
 	return permission, nil
 }
 
@@ -191,7 +192,7 @@ func (pool *ConnPool) Release(permission Permission, ctx context.Context) (resul
 		req <- permission
 		delete(pool.waitQueue, reqKey)
 		pool.waitCount--
-		logging.Log.Debugf("[grpc pool] Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		logging.Log.Debugf("Release connection to wait task, openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
 	} else {
 		// (2) 没有等待任务，将连接放入连接池
 		if pool.openCount > 0 {
@@ -204,7 +205,7 @@ func (pool *ConnPool) Release(permission Permission, ctx context.Context) (resul
 					CreateAt:      nowFunc(),
 				}
 				pool.availableConn[nextConnIndex] = permission
-				logging.Log.Debugf("[grpc pool] Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+				logging.Log.Debugf("Release connection to conn pool, openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
 			}
 		}
 	}

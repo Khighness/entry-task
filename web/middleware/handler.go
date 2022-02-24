@@ -5,8 +5,8 @@ import (
 	"entry/pb"
 	"entry/web/common"
 	"entry/web/grpc"
+	"entry/web/logging"
 	"entry/web/view"
-	"log"
 	"net/http"
 	"time"
 )
@@ -50,7 +50,7 @@ func TimeMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, r)
 		timeElapsed := time.Since(startTime)
 
-		log.Printf("[%v] url:%v, method:%v, time:%v\n", r.RemoteAddr, r.URL.Path, r.Method, timeElapsed)
+		logging.Log.Printf("[ip:%v] url:%v, method:%v, time:%v", r.RemoteAddr, r.URL.Path, r.Method, timeElapsed)
 	})
 }
 
@@ -63,9 +63,11 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 			view.HandlerBizError(w, "Authorization failed")
 			return
 		}
+		logging.Log.Debugf("[verify token] token: %s", token)
 
 		// 校验token是否合法
 		permission, err := grpc.Pool.Achieve(context.Background())
+		defer grpc.Pool.Release(permission, context.Background())
 		if err != nil {
 			view.HandlerBizError(w, "Server is busy, please try again later")
 			return
@@ -77,7 +79,6 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 			view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
 			return
 		}
-		go grpc.Pool.Release(permission.RpcCli, context.Background())
 
 		if rpcRsp.Code == common.RpcSuccessCode {
 			// 认证成功，继续处理业务

@@ -2,9 +2,9 @@ package model
 
 import (
 	"database/sql"
+	"entry/web/logging"
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/ini.v1"
-	"log"
 	"strings"
 	"time"
 )
@@ -21,12 +21,6 @@ var (
 	DbPass string
 	DbName string
 )
-
-// For test
-//func init() {
-//	url := "root:KAG1823@tcp(127.0.0.1:3306)/entry_task?charset=utf8&parseTime=true"
-//	connectMySQL(url)
-//}
 
 // Load 初始化MySQL
 func Load(file *ini.File) {
@@ -50,7 +44,7 @@ func connectMySQL(url string) {
 	db, err := sql.Open("mysql", url)
 
 	if err != nil {
-		log.Fatalf("Wrong configuration of [MySQL] in config file: %s\n", err)
+		logging.Log.Fatalf("Wrong configuration of [MySQL] in config file: %s", err)
 	}
 
 	// 最大连接数
@@ -64,8 +58,8 @@ func connectMySQL(url string) {
 
 	DB = db
 	if err = DB.Ping(); err != nil {
-		log.Fatalf("Failed to connect to mysql server [%s]: %s\n", strings.Join([]string{DbHost, ":", DbPort}, ""), err)
+		logging.Log.Fatalf("Failed to connect to mysql server [%s]: %s", strings.Join([]string{DbHost, ":", DbPort}, ""), err)
 	} else {
-		log.Printf("Succeed to connect to mysql server [%s]\n", strings.Join([]string{DbHost, ":", DbPort}, ""))
+		logging.Log.Infof("Succeed to connect to mysql server [%s]", strings.Join([]string{DbHost, ":", DbPort}, ""))
 	}
 }
