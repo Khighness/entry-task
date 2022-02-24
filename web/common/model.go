@@ -8,21 +8,30 @@ package common
 type UserInfo struct {
 	Id             int64  `json:"id"`
 	Username       string `json:"username"`
-	ProfilePicture string `json:"profile_picture"`
+	ProfilePicture string `json:"profilePicture"`
 }
 
-// SuccessMsg 成功提示
-type SuccessMsg struct {
-	SucType   string
-	Message   string
-	ReturnTip string
-	ReturnUrl string
+type HttpResponse struct {
+	Code    int32       `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
 }
 
-// ErrorMsg 错误提示
-type ErrorMsg struct {
-	ErrType   string
-	Message   string
-	ReturnTip string
-	ReturnUrl string
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token string   `json:"token"`
+	User  UserInfo `json:"user"`
+}
+
+type RegisterRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type UpdateProfileRequest struct {
+	Username string `json:"username"`
 }

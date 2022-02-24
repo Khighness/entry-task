@@ -18,7 +18,31 @@ import (
 // MiddleHandler 封装接口
 type MiddleHandler func(next http.HandlerFunc) http.HandlerFunc
 
-// TimeMiddleWare 耗时计算与日志打印
+// CorsMiddleWare 处理跨域
+func CorsMiddleWare(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// 允许访问所有域
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// 允许header值
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+		// 允许携带cookie
+		w.Header().Add("Access-Control-Allow-Credentials", "true")
+		// 允许请求方法
+		w.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		// 允许返回任意格式数据
+		w.Header().Set("content-type", "*")
+
+		// 跨域第一次OPTIONS请求，直接放行
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	}
+
+}
+
+// TimeMiddleWare 日志打印
 func TimeMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// 处理业务耗时
@@ -30,40 +54,37 @@ func TimeMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-// TokenMiddleWare 用户Token认证
+// TokenMiddleWare Token认证
 func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 从cookie中取出sessionId
-		cookie, err := r.Cookie(common.CookieTokenKey)
-		if err != nil {
-			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage, "Sign In", view.LoginUrl)
+		// 从header中取出token
+		token := r.Header.Get(common.HeaderTokenKey)
+		if token == "" {
+			view.HandlerBizError(w, "Authorization failed")
 			return
 		}
 
-		// 校验sessionId是否合法
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-		defer cancel()
-		permission, err := grpc.Pool.Achieve(ctx)
+		// 校验token是否合法
+		permission, err := grpc.Pool.Achieve(context.Background())
 		if err != nil {
-			log.Println(err)
-			view.HandleError(w, common.DefaultErrorType, common.DefaultErrorMessage, "Sign Up", view.RegisterUrl)
+			view.HandlerBizError(w, "Server is busy, please try again later")
 			return
 		}
-		ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
-		response, err := permission.RpcCli.CheckToken(ctx, &pb.CheckTokenRequest{Token: cookie.Value})
+		rpcRsp, err := permission.RpcCli.CheckToken(ctx, &pb.CheckTokenRequest{Token: token})
 		if err != nil {
-			view.HandleError(w, common.CookieErrorType, common.CookieErrorMessage, "Sign In", view.LoginUrl)
+			view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
 			return
 		}
 		go grpc.Pool.Release(permission.RpcCli, context.Background())
 
-		if response.Code == common.RpcSuccessCode {
+		if rpcRsp.Code == common.RpcSuccessCode {
 			// 认证成功，继续处理业务
 			next.ServeHTTP(w, r)
 		} else {
 			// 认证失败，重定向到登录
-			http.Redirect(w, r, "/login", http.StatusFound)
+			view.HandlerBizError(w, "Authorization failed")
 		}
 	})
 }

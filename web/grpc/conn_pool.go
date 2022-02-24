@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"entry/pb"
+	"entry/web/logging"
 	"errors"
 	"sync"
 	"time"
@@ -111,7 +112,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		}
 
 		delete(pool.availableConn, popReqKey)
-		//log.Printf("[grpc pool] Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		logging.Log.Debugf("[grpc pool] Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 		pool.lock.Unlock()
 
 		return popPermission, nil
@@ -134,7 +135,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 			if !ok {
 				return Permission{}, errors.New("get connection failed, cause: no available connection release")
 			}
-			//log.Printf("[grpc pool] Achieve connection(released) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+			logging.Log.Debugf("[grpc pool] Achieve connection(released) successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 			return ret, nil
 		}
 	}
@@ -153,7 +154,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		RpcCli:        client,
 		CreateAt:      nowFunc(),
 	}
-	//log.Printf("[grpc pool] Achieve connection(created), openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+	logging.Log.Debugf("[grpc pool] Achieve connection(created), openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 	return permission, nil
 }
 
@@ -164,8 +165,13 @@ func getNextConnIndex(conn *ConnPool) int {
 }
 
 // Release 释放连接
-func (pool *ConnPool) Release(client pb.UserServiceClient, ctx context.Context) (result bool, err error) {
+func (pool *ConnPool) Release(permission Permission, ctx context.Context) (result bool, err error) {
 	pool.lock.Lock()
+
+	// 判空
+	if permission.RpcCli == nil {
+		return false, nil
+	}
 
 	// (1) 有任务在等待获取连接
 	// 将释放的连接通过channel发送给该阻塞任务
@@ -179,13 +185,13 @@ func (pool *ConnPool) Release(client pb.UserServiceClient, ctx context.Context) 
 
 		permission := Permission{
 			NextConnIndex: NextConnIndex{reqKey},
-			RpcCli:        client,
+			RpcCli:        permission.RpcCli,
 			CreateAt:      nowFunc(),
 		}
 		req <- permission
 		delete(pool.waitQueue, reqKey)
 		pool.waitCount--
-		//log.Printf("[grpc pool] Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		logging.Log.Debugf("[grpc pool] Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 	} else {
 		// (2) 没有等待任务，将连接放入连接池
 		if pool.openCount > 0 {
@@ -194,11 +200,11 @@ func (pool *ConnPool) Release(client pb.UserServiceClient, ctx context.Context) 
 				nextConnIndex := getNextConnIndex(pool)
 				permission := Permission{
 					NextConnIndex: NextConnIndex{nextConnIndex},
-					RpcCli:        client,
+					RpcCli:        permission.RpcCli,
 					CreateAt:      nowFunc(),
 				}
 				pool.availableConn[nextConnIndex] = permission
-				//log.Printf("[grpc pool] Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+				logging.Log.Debugf("[grpc pool] Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 			}
 		}
 	}
