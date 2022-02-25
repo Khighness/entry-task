@@ -44,5 +44,3 @@ Requests/sec:   6309.06
 Transfer/sec:      1.19MB
 ```
 
-
-wrk -t1 -c1 -d1s --latency -s login.lua "http://127.0.0.1:10000/login"
