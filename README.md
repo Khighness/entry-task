@@ -24,5 +24,20 @@ entry-task
 
 ### 项目架构
 
-![Architecture](./doc/images/architecture.svg)
+<img src="./doc/images/architecture.svg" alt="Architecture" style="zoom: 50%;" />
+
+
+
+### 项目预览
+
+<table>
+  <tr>
+    <td>登录</td>
+    <td>个人</td>
+  </tr>
+  <tr>
+     <td width="50%" align="top"><img src="./doc/images/login.png"/></td>
+     <td width="50%" align="top"><img src="./doc/images/profile.png"/></td>
+  </tr>
+</table>
 

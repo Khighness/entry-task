@@ -9,7 +9,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 初始化
-INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (1, 'KHighness', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/showkhighness.jpg');
+INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (1, 'KHighness', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/show/khighness.jpg');
 INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (2, 'FlowerK', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/show/flowerk.jpeg');
 
 -- 存储过程：从起始start_id开始，插入max_num条数据
