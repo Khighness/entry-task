@@ -25,26 +25,26 @@ const (
 	ErrorTokenIncorrect       = 30009
 	ErrorTokenExpired         = 30010
 
-	ErrorOperateDatabase      = 40001
+	ErrorOperateDatabase = 40001
 )
 
 // 状态码对应信息字典
 var codeMessageDic = map[int]string{
-	SUCCESS: "OK",
+	SUCCESS: "SUCCESS",
 	ERROR:   "ERROR",
 
 	ErrorUsernameTooShort:     fmt.Sprintf("用户名长度不得小于%d", common.NameMinLen),
-	ErrorUsernameTooLong:      fmt.Sprintf("用户名长度不得小于%d", common.NameMinLen),
+	ErrorUsernameTooLong:      fmt.Sprintf("用户名长度不得大于%d", common.NameMaxLen),
 	ErrorUsernameAlreadyExist: "用户名已存在，请换个试试",
 	ErrorPasswordTooShort:     fmt.Sprintf("密码长度不得小于%d", common.PassMinLen),
-	ErrorPasswordTooLong:      fmt.Sprintf("密码长度不得小于%d", common.PassMaxLen),
-	ErrorPasswordNotStrong:    "密码强度较弱，最少包含数字/字母/特殊符号中的以上两种",
+	ErrorPasswordTooLong:      fmt.Sprintf("密码长度不得大于%d", common.PassMaxLen),
+	ErrorPasswordNotStrong:    "密码强度较弱，最少需要包含数字/字母/特殊符号中的以上两种",
 	ErrorUsernameIncorrect:    "用户名错误",
 	ErrorPasswordIncorrect:    "密码错误",
-	ErrorTokenIncorrect:       "cookie非法",
+	ErrorTokenIncorrect:       "令牌非法",
 	ErrorTokenExpired:         "登陆状态已过期",
 
-	ErrorOperateDatabase:      "操作数据库失败",
+	ErrorOperateDatabase: "操作数据库失败",
 }
 
 // GetMsg 根据状态码获取信息

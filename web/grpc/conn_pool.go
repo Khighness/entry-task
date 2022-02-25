@@ -19,7 +19,6 @@ import (
 type ConnPool struct {
 	lock sync.Mutex // 锁
 
-	connPool      []int                   // 连接池
 	openCount     int                     // 当前连接数
 	waitCount     int                     // 等待个数
 	waitQueue     map[int]chan Permission // 等待队列
@@ -55,19 +54,18 @@ type Config struct {
 var nowFunc = time.Now
 
 // NewPool 创建一个连接池
-func NewPool(ctx context.Context, config *Config) (conn *ConnPool) {
+func NewPool(config *Config) (conn *ConnPool) {
 	if config.InitCount > 10000 || config.InitCount > config.MaxOpenCount {
 		return nil
 	}
 
 	pool := &ConnPool{
-		connPool:      []int{},
-		openCount:     config.InitCount,
+		openCount:     0,
 		waitCount:     0,
 		waitQueue:     make(map[int]chan Permission),
 		availableConn: make(map[int]Permission),
 		macOpenCount:  config.MaxOpenCount,
-		maxIdleCount:  config.MaxOpenCount,
+		maxIdleCount:  config.MaxIdleCount,
 		maxWaitTime:   config.MaxWaitTime,
 		rpcServerAddr: config.RpcServerAddr,
 	}
@@ -86,6 +84,7 @@ func NewPool(ctx context.Context, config *Config) (conn *ConnPool) {
 		pool.availableConn[nextConnIndex] = permission
 	}
 
+	logging.Log.Infof("Create grpc connection pool, initCount: %v", len(pool.availableConn))
 	return pool
 }
 
@@ -98,8 +97,8 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 	case <-ctx.Done():
 		// context取消或者超时，退出
 		pool.lock.Unlock()
-		logging.Log.Warnf("Achieve connection failed, cause: context canceled")
-		return Permission{}, errors.New("fail to create a new connection, cause: context canceled")
+		logging.Log.Warnf("Achieve connection failed, cause: context canceled or timeout")
+		return Permission{}, errors.New("fail to create a new connection, cause: context canceled or timeout")
 	}
 
 	// (1) 连接池不为空，直接获取连接
@@ -113,7 +112,8 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		}
 
 		delete(pool.availableConn, popReqKey)
-		logging.Log.Debugf("[grpc pool] Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
+		pool.openCount++
+		logging.Log.Debugf("Achieve connection(fromPool) successfully, openCount:%d, idleCount:%v", pool.openCount, len(pool.availableConn))
 		pool.lock.Unlock()
 
 		return popPermission, nil
@@ -131,7 +131,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		select {
 		case <-time.After(pool.maxWaitTime):
 			logging.Log.Warnf("Achieve connection failed, cause: wait timeout")
-			return
+			return Permission{}, errors.New("get connection failed, cause: pool wait timeout")
 		case ret, ok := <-req:
 			if !ok {
 				return Permission{}, errors.New("get connection failed, cause: no available connection release")
@@ -171,7 +171,9 @@ func (pool *ConnPool) Release(permission Permission, ctx context.Context) (resul
 
 	// 判空
 	if permission.RpcCli == nil {
-		return false, nil
+		logging.Log.Debugf("Release permission's connection to pool, but it is nil")
+		pool.lock.Unlock()
+		return false, errors.New("permission is nil")
 	}
 
 	// (1) 有任务在等待获取连接
@@ -211,5 +213,5 @@ func (pool *ConnPool) Release(permission Permission, ctx context.Context) (resul
 	}
 
 	pool.lock.Unlock()
-	return
+	return true, nil
 }

@@ -50,7 +50,7 @@ func TimeMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		next.ServeHTTP(w, r)
 		timeElapsed := time.Since(startTime)
 
-		logging.Log.Printf("[ip:%v] url:%v, method:%v, time:%v", r.RemoteAddr, r.URL.Path, r.Method, timeElapsed)
+		logging.Log.Infof("[IP:%v] url:%v, method:%v, time:%v", r.RemoteAddr, r.URL.Path, r.Method, timeElapsed)
 	})
 }
 
@@ -60,7 +60,7 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		// 从header中取出token
 		token := r.Header.Get(common.HeaderTokenKey)
 		if token == "" {
-			view.HandlerBizError(w, "Authorization failed")
+			view.HandleBizError(w, "Authorization failed")
 			return
 		}
 		logging.Log.Debugf("[verify token] token: %s", token)
@@ -69,23 +69,24 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		permission, err := grpc.Pool.Achieve(context.Background())
 		defer grpc.Pool.Release(permission, context.Background())
 		if err != nil {
-			view.HandlerBizError(w, "Server is busy, please try again later")
+			view.HandleErrorServerBusy(w)
 			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 		rpcRsp, err := permission.RpcCli.CheckToken(ctx, &pb.CheckTokenRequest{Token: token})
 		if err != nil {
-			view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+			view.HandleErrorRpcRequest(w, permission)
 			return
 		}
 
-		if rpcRsp.Code == common.RpcSuccessCode {
-			// 认证成功，继续处理业务
-			next.ServeHTTP(w, r)
-		} else {
-			// 认证失败，重定向到登录
-			view.HandlerBizError(w, "Authorization failed")
+		// 认证失败
+		if rpcRsp.Code != common.RpcSuccessCode {
+			view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
+			return
 		}
+
+		// 认证成功，继续处理业务
+		next.ServeHTTP(w, r)
 	})
 }

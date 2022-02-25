@@ -9,22 +9,8 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- 初始化
-INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (1, 'KHighness', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/khighness.jpg');
-INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (2, 'FlowerK', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/flowerk.jpeg');
-
--- 函数：产生n位随机名字
--- DELIMITER $$
--- CREATE FUNCTION rand_name(n INT) RETURNS VARCHAR(255)
--- BEGIN
---     DECLARE chars_str VARCHAR(100) DEFAULT '@0123456789abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWXYZ=';
---     DECLARE return_str VARCHAR(255) DEFAULT '';
---     DECLARE i INT DEFAULT 0;
---     WHILE i < n DO
---             SET return_str = CONCAT(return_str,SUBSTRING(chars_str,FLOOR(1+RAND()*64),1));
---             SET i = i + 1;
--- END WHILE;
--- RETURN return_str;
--- END $$
+INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (1, 'KHighness', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/showkhighness.jpg');
+INSERT INTO entry_task.user (id, username, password, profile_picture) VALUES (2, 'FlowerK', 'cea13832a6a48e6b83c472a50ca55934', 'http://127.0.0.1:10000/avatar/show/flowerk.jpeg');
 
 -- 存储过程：从起始start_id开始，插入max_num条数据
 DELIMITER $$
@@ -44,14 +30,27 @@ END $$
 -- 插入1000,0000条数据
 call insert_user(3, 10000000)
 
+-- 函数：产生n位随机名字
+-- DELIMITER $$
+-- CREATE FUNCTION rand_name(n INT) RETURNS VARCHAR(255)
+-- BEGIN
+--     DECLARE chars_str VARCHAR(100) DEFAULT '@0123456789abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWXYZ=';
+--     DECLARE return_str VARCHAR(255) DEFAULT '';
+--     DECLARE i INT DEFAULT 0;
+--     WHILE i < n DO
+--             SET return_str = CONCAT(return_str,SUBSTRING(chars_str,FLOOR(1+RAND()*64),1));
+--             SET i = i + 1;
+-- END WHILE;
+-- RETURN return_str;
+-- END $$
 
-# 最大连接数
-show variables like '%max_connections%';
-# 服务器响应的最大连接数
-show global status like 'Max_used_connections';
-# 设置最大连接数
-set global max_connections = 10000;
-# 客户端连接数
-select count(*) from information_schema.processlist;
-# 客户端连接ip数
-select SUBSTRING_INDEX(host,':',1) as ip , count(*) from information_schema.processlist group by ip
+-- 最大连接数
+-- show variables like '%max_connections%';
+-- 服务器响应的最大连接数
+-- show global status like 'Max_used_connections';
+-- 设置最大连接数
+-- set global max_connections = 10000;
+-- 客户端连接
+-- show processlist;
+-- 客户端连接ip数
+-- select SUBSTRING_INDEX(host,':',1) as ip , count(*) from information_schema.processlist group by ip

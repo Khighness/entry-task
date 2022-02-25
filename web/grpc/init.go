@@ -1,7 +1,6 @@
 package grpc
 
 import (
-	"context"
 	"entry/web/common"
 	"time"
 )
@@ -14,12 +13,12 @@ var Pool *ConnPool
 
 // Init 初始化
 func Init() {
-	Pool = NewPool(context.Background(), &Config{
-		InitCount:     50,
-		MaxOpenCount:  100,
-		MaxIdleCount:  100,
+	Pool = NewPool(&Config{
+		InitCount:     500,
+		MaxOpenCount:  1000,
+		MaxIdleCount:  1000,
 		MaxLifeTime:   time.Hour,
-		MaxWaitTime:   time.Second,
+		MaxWaitTime:   3 * time.Second,
 		RpcServerAddr: common.RpcServerAddr,
 	})
 }

@@ -1,3 +1,5 @@
+.DS_Store
+
 # Goland workspace
 .idea/
 
@@ -23,4 +25,28 @@ log/
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-.DS_Store
+
+# Libary
+node_modules
+
+# Build
+dist/
+
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

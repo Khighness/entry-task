@@ -8,7 +8,7 @@ package common
 // DefaultProfilePicture 注册的默认图片
 const (
 	TokenBytes            = 16
-	DefaultProfilePicture = "http://127.0.0.1:10000/avatar/default.jpg"
+	DefaultProfilePicture = "http://127.0.0.1:10000/avatar/show/default.jpg"
 )
 
 // 注册要求

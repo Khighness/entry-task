@@ -36,9 +36,8 @@ func (userController *UserController) Register(w http.ResponseWriter, r *http.Re
 	}
 
 	permission, err := grpc.Pool.Achieve(context.Background())
-	defer grpc.Pool.Release(permission, context.Background())
 	if err != nil {
-		view.HandlerBizError(w, "Server is busy, please try again later")
+		view.HandleErrorServerBusy(w)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -49,14 +48,14 @@ func (userController *UserController) Register(w http.ResponseWriter, r *http.Re
 	})
 
 	if err != nil {
-		view.HandlerBizError(w, "RPC failed or timeout")
+		view.HandleErrorRpcRequest(w, permission)
 		return
 	}
 	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
 		return
 	}
-	view.HandleBizSuccess(w, nil)
+	view.HandleBizSuccess(w, nil, permission)
 }
 
 // Login 用户登录
@@ -74,9 +73,8 @@ func (userController *UserController) Login(w http.ResponseWriter, r *http.Reque
 	}
 
 	permission, err := grpc.Pool.Achieve(context.Background())
-	defer grpc.Pool.Release(permission, context.Background())
 	if err != nil {
-		view.HandlerBizError(w, "Server is busy, please try again later")
+		view.HandleErrorServerBusy(w)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -87,11 +85,11 @@ func (userController *UserController) Login(w http.ResponseWriter, r *http.Reque
 	})
 
 	if err != nil {
-		view.HandlerBizError(w, "RPC failed or timeout")
+		view.HandleErrorRpcRequest(w, permission)
 		return
 	}
 	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
 		return
 	}
 	view.HandleBizSuccess(w, common.LoginResponse{
@@ -101,7 +99,7 @@ func (userController *UserController) Login(w http.ResponseWriter, r *http.Reque
 			Username:       rpcRsp.User.Username,
 			ProfilePicture: rpcRsp.User.ProfilePicture,
 		},
-	})
+	}, permission)
 }
 
 // GetProfile 获取信息
@@ -113,7 +111,7 @@ func (userController *UserController) GetProfile(w http.ResponseWriter, r *http.
 
 	permission, err := grpc.Pool.Achieve(context.Background())
 	if err != nil {
-		view.HandlerBizError(w, "Server is busy, please try again later")
+		view.HandleErrorServerBusy(w)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -121,21 +119,20 @@ func (userController *UserController) GetProfile(w http.ResponseWriter, r *http.
 	rpcRsp, err := permission.RpcCli.GetProfile(ctx, &pb.GetProfileRequest{
 		Token: r.Header.Get(common.HeaderTokenKey),
 	})
-	go grpc.Pool.Release(permission, context.Background())
 
 	if err != nil {
-		view.HandlerBizError(w, "RPC failed or timeout")
+		view.HandleErrorRpcRequest(w, permission)
 		return
 	}
 	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
 		return
 	}
 	view.HandleBizSuccess(w, common.UserInfo{
 		Id:             rpcRsp.User.Id,
 		Username:       rpcRsp.User.Username,
 		ProfilePicture: rpcRsp.User.ProfilePicture,
-	})
+	}, permission)
 }
 
 // UpdateProfile 更新信息
@@ -152,9 +149,8 @@ func (userController *UserController) UpdateProfile(w http.ResponseWriter, r *ht
 	}
 
 	permission, err := grpc.Pool.Achieve(context.Background())
-	defer grpc.Pool.Release(permission, context.Background())
 	if err != nil {
-		view.HandlerBizError(w, "Server is busy, please try again later")
+		view.HandleErrorServerBusy(w)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -165,14 +161,14 @@ func (userController *UserController) UpdateProfile(w http.ResponseWriter, r *ht
 	})
 
 	if err != nil {
-		view.HandlerBizError(w, "RPC failed or timeout")
+		view.HandleErrorRpcRequest(w, permission)
 		return
 	}
 	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
 		return
 	}
-	view.HandleBizSuccess(w, nil)
+	view.HandleBizSuccess(w, nil, permission)
 }
 
 // ShowAvatar 显示头像
@@ -184,7 +180,7 @@ func (userController *UserController) ShowAvatar(w http.ResponseWriter, r *http.
 	profilePicture := strings.TrimLeft(r.URL.Path, view.ShowAvatarUrl)
 	_, err := os.Stat(common.AvatarStoragePath + profilePicture)
 	if os.IsNotExist(err) {
-		view.HandleBizSuccess(w, profilePicture+" does not exist")
+		view.HandleBizError(w, profilePicture+" does not exist")
 		return
 	}
 	file, _ := os.OpenFile(common.AvatarStoragePath+profilePicture, os.O_RDONLY, 0444)
@@ -217,14 +213,13 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 	defer createFile.Close()
 	_, err = io.Copy(createFile, uploadFile)
 	if err != nil {
-		view.HandlerBizError(w, "Upload profile picture failed")
+		view.HandleBizError(w, "Upload profile picture failed")
 		return
 	}
 
 	permission, err := grpc.Pool.Achieve(context.Background())
-	defer grpc.Pool.Release(permission, context.Background())
 	if err != nil {
-		view.HandlerBizError(w, "Server is busy, please try again later")
+		view.HandleErrorServerBusy(w)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -235,14 +230,14 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 	})
 
 	if err != nil {
-		view.HandlerBizError(w, "RPC failed or timeout")
+		view.HandleErrorRpcRequest(w, permission)
 		return
 	}
 	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
 		return
 	}
-	view.HandleBizSuccess(w, nil)
+	view.HandleBizSuccess(w, nil, permission)
 }
 
 // Logout 退出登录
@@ -253,9 +248,8 @@ func (userController *UserController) Logout(w http.ResponseWriter, r *http.Requ
 	}
 
 	permission, err := grpc.Pool.Achieve(context.Background())
-	defer grpc.Pool.Release(permission, context.Background())
 	if err != nil {
-		view.HandlerBizError(w, "Server is busy, please try again later")
+		view.HandleErrorServerBusy(w)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -265,12 +259,12 @@ func (userController *UserController) Logout(w http.ResponseWriter, r *http.Requ
 	})
 
 	if err != nil {
-		view.HandlerBizError(w, "RPC failed or timeout")
+		view.HandleErrorRpcRequest(w, permission)
 		return
 	}
 	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandlerRpcErrResponse(w, rpcRsp.Code, rpcRsp.Msg)
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
 		return
 	}
-	view.HandleBizSuccess(w, nil)
+	view.HandleBizSuccess(w, nil, permission)
 }

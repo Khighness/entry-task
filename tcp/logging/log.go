@@ -26,7 +26,7 @@ var Log *logrus.Logger
 
 func init() {
 	Log = logrus.New()
-	Log.SetLevel(logrus.InfoLevel)
+	Log.SetLevel(logrus.WarnLevel)
 	Log.SetFormatter(&LogFormatter{})
 	Log.SetOutput(io.MultiWriter(LogFile(), os.Stdout))
 	Log.SetReportCaller(true)

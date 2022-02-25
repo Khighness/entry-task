@@ -1,9 +1,11 @@
-## 压测文档
+## entry-task benchmark test document
 
 
-### 登录压测
 
-200并发
+
+### login test
+
+200 client
 
 ```shell
 wrk -t6 -c200 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
@@ -24,7 +26,8 @@ Transfer/sec:      1.19MB
 ```
 
 
-2000并发
+
+2000 client
 
 ```shell
 wrk -t6 -c2000 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
