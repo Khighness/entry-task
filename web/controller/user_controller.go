@@ -6,6 +6,7 @@ import (
 	"entry/pb"
 	"entry/web/common"
 	"entry/web/grpc"
+	"entry/web/util"
 	"entry/web/view"
 	"fmt"
 	"io"
@@ -59,7 +60,6 @@ func (userController *UserController) Register(w http.ResponseWriter, r *http.Re
 }
 
 // Login 用户登录
-// TODO 防止XSRF攻击
 func (userController *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		view.HandleMethodError(w, "Allowed Method: [GET]")
@@ -202,8 +202,15 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 		return
 	}
 	defer uploadFile.Close()
-	if !(strings.HasSuffix(header.Filename, ".jpg") || strings.HasSuffix(header.Filename, ".png") || strings.HasSuffix(header.Filename, ".jpeg")) {
+
+	if !(strings.HasSuffix(header.Filename, "jpg") || strings.HasSuffix(header.Filename, "png") || strings.HasSuffix(header.Filename, "jpeg")) {
 		view.HandleRequestError(w, "Please upload jpg/png/jpeg file as profile picture")
+		return
+	}
+	fSrc, _ := io.ReadAll(uploadFile)
+	fileType := util.GetFileType(fSrc[:10])
+	if !(fileType == "jpg" || fileType == "png" || fileType == "jpeg") {
+		view.HandleRequestError(w, "The suffix of the uploaded file does not match the content of the file")
 		return
 	}
 

@@ -108,3 +108,4 @@ $ npm install
 $ npm run serve
 ```
 
+TODO 二进制文件

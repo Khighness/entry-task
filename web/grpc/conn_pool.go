@@ -13,8 +13,8 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-22
 
-// TODO: 连接 maxLifeTime
-// TODO: 监控连接池，崩溃修复
+// TODO 连接 maxLifeTime
+// TODO 监控连接池，崩溃修复
 
 type ConnPool struct {
 	lock sync.Mutex // 锁

@@ -1,7 +1,6 @@
-package test
+package util
 
 import (
-	"entry/tcp/util"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -20,7 +19,7 @@ func BenchmarkUint32n(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		s := uint32(0)
 		for pb.Next() {
-			s += util.Uint32n(1e6)
+			s += Uint32n(1e6)
 		}
 		atomic.AddUint32(&BenchSink, s)
 	})
@@ -28,7 +27,7 @@ func BenchmarkUint32n(b *testing.B) {
 
 func BenchmarkRNGUint32n(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
-		var r util.RNG
+		var r RNG
 		s := uint32(0)
 		for pb.Next() {
 			s += r.Uint32n(1e6)
@@ -38,7 +37,7 @@ func BenchmarkRNGUint32n(b *testing.B) {
 }
 
 func BenchmarkRNGUint32nWithLock(b *testing.B) {
-	var r util.RNG
+	var r RNG
 	var rMu sync.Mutex
 	b.RunParallel(func(pb *testing.PB) {
 		s := uint32(0)
@@ -53,11 +52,11 @@ func BenchmarkRNGUint32nWithLock(b *testing.B) {
 
 func BenchmarkRNGUint32nArray(b *testing.B) {
 	var rr [64]struct {
-		r  util.RNG
+		r  RNG
 		mu sync.Mutex
 
 		// pad prevents from false sharing
-		pad [64 - (unsafe.Sizeof(util.RNG{})+unsafe.Sizeof(sync.Mutex{}))%64]byte
+		pad [64 - (unsafe.Sizeof(RNG{})+unsafe.Sizeof(sync.Mutex{}))%64]byte
 	}
 	var n uint32
 	b.RunParallel(func(pb *testing.PB) {
@@ -114,7 +113,7 @@ func BenchmarkMathRandRNGInt31nArray(b *testing.B) {
 		mu sync.Mutex
 
 		// pad prevents from false sharing
-		pad [64 - (unsafe.Sizeof(util.RNG{})+unsafe.Sizeof(sync.Mutex{}))%64]byte
+		pad [64 - (unsafe.Sizeof(RNG{})+unsafe.Sizeof(sync.Mutex{}))%64]byte
 	}
 	for i := range rr {
 		rr[i].r = rand.New(rand.NewSource(int64(i)))

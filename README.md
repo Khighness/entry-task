@@ -24,7 +24,7 @@ entry-task
 
 ### 项目架构
 
-<img src="./doc/images/architecture.svg" alt="Architecture" style="zoom: 50%;" />
+<img src="./doc/images/architecture.svg" alt="Architecture" style="zoom: 100%;" />
 
 
 
@@ -40,4 +40,3 @@ entry-task
      <td width="50%" align="top"><img src="./doc/images/profile.png"/></td>
   </tr>
 </table>
-

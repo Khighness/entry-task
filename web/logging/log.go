@@ -26,7 +26,7 @@ var Log *logrus.Logger
 
 func init() {
 	Log = logrus.New()
-	Log.SetLevel(logrus.WarnLevel)
+	Log.SetLevel(logrus.InfoLevel)
 	Log.SetFormatter(&LogFormatter{})
 	Log.SetOutput(io.MultiWriter(LogFile(), os.Stdout))
 	Log.SetReportCaller(true)
@@ -70,8 +70,8 @@ func LogFile() *os.File {
 	}
 	logFileName := time.Now().Format(dateFormat) + fileSuffix
 	fileName := path.Join(logDirPath, logFileName)
-	if _, err := os.Stat(fileName); err != nil {
-		if _, err := os.Create(fileName); err != nil {
+	if _, err = os.Stat(fileName); err != nil {
+		if _, err = os.Create(fileName); err != nil {
 			log.Fatalln("Create log file failed")
 			return nil
 		}

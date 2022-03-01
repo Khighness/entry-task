@@ -5,6 +5,8 @@
 
 ### login test
 
+time 30S-60S
+
 200 client
 
 ```shell

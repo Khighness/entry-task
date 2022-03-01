@@ -1,8 +1,7 @@
-package test
+package util
 
 import (
 	"entry/tcp/common/e"
-	"entry/tcp/util"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -17,11 +16,11 @@ func TestCheckUsername(t *testing.T) {
 	name3 := "chen zikang"
 	var status int
 
-	status = util.CheckUsername(name1)
+	status = CheckUsername(name1)
 	assert.Equal(t, e.ErrorUsernameTooShort, status)
-	status = util.CheckUsername(name2)
+	status = CheckUsername(name2)
 	assert.Equal(t, e.ErrorUsernameTooLong, status)
-	status = util.CheckUsername(name3)
+	status = CheckUsername(name3)
 	assert.Equal(t, e.SUCCESS, status)
 }
 
@@ -35,18 +34,18 @@ func TestCheckPassword(t *testing.T) {
 	pass7 := "czk123@CZK"             // level 4
 	var status int
 
-	status = util.CheckPassword(pass1)
+	status = CheckPassword(pass1)
 	assert.Equal(t, e.ErrorPasswordTooShort, status)
-	status = util.CheckPassword(pass2)
+	status = CheckPassword(pass2)
 	assert.Equal(t, e.ErrorPasswordTooLong, status)
-	status = util.CheckPassword(pass3)
+	status = CheckPassword(pass3)
 	assert.Equal(t, e.ErrorPasswordNotStrong, status)
-	status = util.CheckPassword(pass4)
+	status = CheckPassword(pass4)
 	assert.Equal(t, e.ErrorPasswordNotStrong, status)
-	status = util.CheckPassword(pass5)
+	status = CheckPassword(pass5)
 	assert.Equal(t, e.SUCCESS, status)
-	status = util.CheckPassword(pass6)
+	status = CheckPassword(pass6)
 	assert.Equal(t, e.SUCCESS, status)
-	status = util.CheckPassword(pass7)
+	status = CheckPassword(pass7)
 	assert.Equal(t, e.SUCCESS, status)
 }

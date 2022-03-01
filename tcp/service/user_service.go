@@ -17,6 +17,9 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
+// TODO 对表单输入过滤
+// TODO 防止XSRF攻击
+
 type Server struct{}
 
 var (
@@ -154,7 +157,7 @@ func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.
 }
 
 // GetProfile 获取信息
-// TODO: 多节点，分布式锁
+// TODO 多节点，分布式锁
 func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
 	var status = e.SUCCESS
 
