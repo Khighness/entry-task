@@ -1,10 +1,8 @@
 package view
 
 import (
-	"context"
 	"encoding/json"
 	"entry/web/common"
-	"entry/web/grpc"
 	"net/http"
 )
 
@@ -13,8 +11,7 @@ import (
 // @Since  2022-02-23
 
 // HandleBizSuccess 处理业务成功结果
-func HandleBizSuccess(w http.ResponseWriter, data interface{}, permission grpc.Permission) {
-	go grpc.Pool.Release(permission, context.Background())
+func HandleBizSuccess(w http.ResponseWriter, data interface{}) {
 	response, _ := json.Marshal(common.HttpResponse{
 		Code:    common.HttpSuccessCode,
 		Message: common.HttpSuccessMessage,
@@ -43,8 +40,7 @@ func HandleErrorServerBusy(w http.ResponseWriter) {
 }
 
 // HandleErrorRpcRequest 处理RPC请求错误
-func HandleErrorRpcRequest(w http.ResponseWriter, permission grpc.Permission) {
-	go grpc.Pool.Release(permission, context.Background())
+func HandleErrorRpcRequest(w http.ResponseWriter) {
 	response, _ := json.Marshal(common.HttpResponse{
 		Code:    common.HttpErrorRpcRequestCode,
 		Message: common.HttpErrorRpcRequestMessage,
@@ -53,8 +49,7 @@ func HandleErrorRpcRequest(w http.ResponseWriter, permission grpc.Permission) {
 }
 
 // HandleErrorRpcResponse 处理RPC结果错误
-func HandleErrorRpcResponse(w http.ResponseWriter, code int32, msg string, permission grpc.Permission) {
-	go grpc.Pool.Release(permission, context.Background())
+func HandleErrorRpcResponse(w http.ResponseWriter, code int32, msg string) {
 	response, _ := json.Marshal(common.HttpResponse{
 		Code:    code,
 		Message: msg,

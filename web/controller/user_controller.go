@@ -29,34 +29,27 @@ func (userController *UserController) Register(w http.ResponseWriter, r *http.Re
 		view.HandleMethodError(w, "Allowed Method: [GET]")
 		return
 	}
-	var registerRequest common.RegisterRequest
-	err := json.NewDecoder(r.Body).Decode(&registerRequest)
+	var registerReq common.RegisterRequest
+	err := json.NewDecoder(r.Body).Decode(&registerReq)
 	if err != nil {
 		view.HandleRequestError(w, "Body should be json for registering data")
 		return
 	}
 
-	permission, err := grpc.Pool.Achieve(context.Background())
+	register := func(cli pb.UserServiceClient) (interface{}, error) {
+		return cli.Register(context.Background(), &pb.RegisterRequest{Username: registerReq.Username, Password: registerReq.Password})
+	}
+	rpcRsp, err := grpc.GP.Exec(register)
 	if err != nil {
-		view.HandleErrorServerBusy(w)
+		view.HandleErrorRpcRequest(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	rpcRsp, err := permission.RpcCli.Register(ctx, &pb.RegisterRequest{
-		Username: registerRequest.Username,
-		Password: registerRequest.Password,
-	})
-
-	if err != nil {
-		view.HandleErrorRpcRequest(w, permission)
+	rsp, _ := rpcRsp.(*pb.RegisterResponse)
+	if rsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 		return
 	}
-	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
-		return
-	}
-	view.HandleBizSuccess(w, nil, permission)
+	view.HandleBizSuccess(w, nil)
 }
 
 // Login 用户登录
@@ -65,41 +58,34 @@ func (userController *UserController) Login(w http.ResponseWriter, r *http.Reque
 		view.HandleMethodError(w, "Allowed Method: [GET]")
 		return
 	}
-	var loginRequest common.LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&loginRequest)
+	var loginReq common.LoginRequest
+	err := json.NewDecoder(r.Body).Decode(&loginReq)
 	if err != nil {
 		view.HandleRequestError(w, "Body should be json for logining data")
 		return
 	}
 
-	permission, err := grpc.Pool.Achieve(context.Background())
+	login := func(cli pb.UserServiceClient) (interface{}, error) {
+		return cli.Login(context.Background(), &pb.LoginRequest{Username: loginReq.Username, Password: loginReq.Password})
+	}
+	rpcRsp, err := grpc.GP.Exec(login)
 	if err != nil {
-		view.HandleErrorServerBusy(w)
+		view.HandleErrorRpcRequest(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	rpcRsp, err := permission.RpcCli.Login(ctx, &pb.LoginRequest{
-		Username: loginRequest.Username,
-		Password: loginRequest.Password,
-	})
-
-	if err != nil {
-		view.HandleErrorRpcRequest(w, permission)
-		return
-	}
-	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
+	rsp, _ := rpcRsp.(*pb.LoginResponse)
+	if rsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, common.LoginResponse{
-		Token: rpcRsp.Token,
+		Token: rsp.Token,
 		User: common.UserInfo{
-			Id:             rpcRsp.User.Id,
-			Username:       rpcRsp.User.Username,
-			ProfilePicture: rpcRsp.User.ProfilePicture,
+			Id:             rsp.User.Id,
+			Username:       rsp.User.Username,
+			ProfilePicture: rsp.User.ProfilePicture,
 		},
-	}, permission)
+	})
 }
 
 // GetProfile 获取信息
@@ -109,30 +95,24 @@ func (userController *UserController) GetProfile(w http.ResponseWriter, r *http.
 		return
 	}
 
-	permission, err := grpc.Pool.Achieve(context.Background())
+	getProfile := func(cli pb.UserServiceClient) (interface{}, error) {
+		return cli.GetProfile(context.Background(), &pb.GetProfileRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+	}
+	rpcRsp, err := grpc.GP.Exec(getProfile)
 	if err != nil {
-		view.HandleErrorServerBusy(w)
+		view.HandleErrorRpcRequest(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	rpcRsp, err := permission.RpcCli.GetProfile(ctx, &pb.GetProfileRequest{
-		Token: r.Header.Get(common.HeaderTokenKey),
-	})
-
-	if err != nil {
-		view.HandleErrorRpcRequest(w, permission)
-		return
-	}
-	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
+	rsp, _ := rpcRsp.(*pb.GetProfileResponse)
+	if rsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, common.UserInfo{
-		Id:             rpcRsp.User.Id,
-		Username:       rpcRsp.User.Username,
-		ProfilePicture: rpcRsp.User.ProfilePicture,
-	}, permission)
+		Id:             rsp.User.Id,
+		Username:       rsp.User.Username,
+		ProfilePicture: rsp.User.ProfilePicture,
+	})
 }
 
 // UpdateProfile 更新信息
@@ -148,27 +128,23 @@ func (userController *UserController) UpdateProfile(w http.ResponseWriter, r *ht
 		return
 	}
 
-	permission, err := grpc.Pool.Achieve(context.Background())
+	updateProfile := func(cli pb.UserServiceClient) (interface{}, error) {
+		return cli.UpdateProfile(context.Background(), &pb.UpdateProfileRequest{
+			Token:    r.Header.Get(common.HeaderTokenKey),
+			Username: updateProfileRequest.Username,
+		})
+	}
+	rpcRsp, err := grpc.GP.Exec(updateProfile)
 	if err != nil {
-		view.HandleErrorServerBusy(w)
+		view.HandleErrorRpcRequest(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	rpcRsp, err := permission.RpcCli.UpdateProfile(ctx, &pb.UpdateProfileRequest{
-		Token:    r.Header.Get(common.HeaderTokenKey),
-		Username: updateProfileRequest.Username,
-	})
-
-	if err != nil {
-		view.HandleErrorRpcRequest(w, permission)
+	rsp, _ := rpcRsp.(*pb.UpdateProfileResponse)
+	if rsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 		return
 	}
-	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
-		return
-	}
-	view.HandleBizSuccess(w, nil, permission)
+	view.HandleBizSuccess(w, nil)
 }
 
 // ShowAvatar 显示头像
@@ -202,49 +178,43 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 		return
 	}
 	defer uploadFile.Close()
-
 	if !(strings.HasSuffix(header.Filename, "jpg") || strings.HasSuffix(header.Filename, "png") || strings.HasSuffix(header.Filename, "jpeg")) {
 		view.HandleRequestError(w, "Please upload jpg/png/jpeg file as profile picture")
 		return
 	}
-	fSrc, _ := io.ReadAll(uploadFile)
-	fileType := util.GetFileType(fSrc[:10])
+	fileStream, _ := io.ReadAll(uploadFile)
+	fileType := util.GetFileType(fileStream[:10])
 	if !(fileType == "jpg" || fileType == "png" || fileType == "jpeg") {
 		view.HandleRequestError(w, "The suffix of the uploaded file does not match the content of the file")
 		return
 	}
-
 	avatarName := fmt.Sprintf("%d-%s", time.Now().Unix(), header.Filename)
 	profilePicture := fmt.Sprintf("http://%s%s%s", common.HttpServerAddr, view.ShowAvatarUrl, avatarName)
-	createFile, err := os.OpenFile(common.AvatarStoragePath+avatarName, os.O_WRONLY|os.O_CREATE, 0666)
+	createFile, err := os.OpenFile(common.AvatarStoragePath+avatarName, os.O_WRONLY|os.O_CREATE, 0766)
 	defer createFile.Close()
-	_, err = io.Copy(createFile, uploadFile)
+	_, err = createFile.Write(fileStream)
 	if err != nil {
 		view.HandleBizError(w, "Upload profile picture failed")
 		return
 	}
 
-	permission, err := grpc.Pool.Achieve(context.Background())
+	updateProfile := func(cli pb.UserServiceClient) (interface{}, error) {
+		return cli.UpdateProfile(context.Background(), &pb.UpdateProfileRequest{
+			Token:          r.Header.Get(common.HeaderTokenKey),
+			ProfilePicture: profilePicture,
+		})
+	}
+	rpcRsp, err := grpc.GP.Exec(updateProfile)
 	if err != nil {
-		view.HandleErrorServerBusy(w)
+		view.HandleErrorRpcRequest(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	rpcRsp, err := permission.RpcCli.UpdateProfile(ctx, &pb.UpdateProfileRequest{
-		Token:          r.Header.Get(common.HeaderTokenKey),
-		ProfilePicture: profilePicture,
-	})
-
-	if err != nil {
-		view.HandleErrorRpcRequest(w, permission)
+	rsp, _ := rpcRsp.(*pb.UpdateProfileResponse)
+	if rsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 		return
 	}
-	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
-		return
-	}
-	view.HandleBizSuccess(w, nil, permission)
+	view.HandleBizSuccess(w, nil)
 }
 
 // Logout 退出登录
@@ -254,24 +224,18 @@ func (userController *UserController) Logout(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	permission, err := grpc.Pool.Achieve(context.Background())
+	logout := func(cli pb.UserServiceClient) (interface{}, error) {
+		return cli.Logout(context.Background(), &pb.LogoutRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+	}
+	rpcRsp, err := grpc.GP.Exec(logout)
 	if err != nil {
-		view.HandleErrorServerBusy(w)
+		view.HandleErrorRpcRequest(w)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	rpcRsp, err := permission.RpcCli.Logout(ctx, &pb.LogoutRequest{
-		Token: r.Header.Get(common.HeaderTokenKey),
-	})
-
-	if err != nil {
-		view.HandleErrorRpcRequest(w, permission)
+	rsp, _ := rpcRsp.(*pb.LogoutResponse)
+	if rsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 		return
 	}
-	if rpcRsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
-		return
-	}
-	view.HandleBizSuccess(w, nil, permission)
+	view.HandleBizSuccess(w, nil)
 }

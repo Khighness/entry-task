@@ -66,23 +66,19 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		logging.Log.Debugf("[verify token] token: %s", token)
 
 		// 校验token是否合法
-		permission, err := grpc.Pool.Achieve(context.Background())
-		defer grpc.Pool.Release(permission, context.Background())
+		checkToken := func(cli pb.UserServiceClient) (interface{}, error) {
+			return cli.CheckToken(context.Background(), &pb.CheckTokenRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+		}
+		rpcRsp, err := grpc.GP.Exec(checkToken)
 		if err != nil {
-			view.HandleErrorServerBusy(w)
+			view.HandleErrorRpcRequest(w)
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		rpcRsp, err := permission.RpcCli.CheckToken(ctx, &pb.CheckTokenRequest{Token: token})
-		if err != nil {
-			view.HandleErrorRpcRequest(w, permission)
-			return
-		}
+		rsp, _ := rpcRsp.(*pb.CheckTokenResponse)
 
 		// 认证失败
-		if rpcRsp.Code != common.RpcSuccessCode {
-			view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg, permission)
+		if rsp.Code != common.RpcSuccessCode {
+			view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
 			return
 		}
 
