@@ -289,6 +289,7 @@ func (gp *GrpcPool) putConnLocked(gc *GrpcConn) bool {
 		}
 		// close(gc)
 		gp.maxIdleClosed++
+		gp.numOpen--
 	}
 	return false
 }
