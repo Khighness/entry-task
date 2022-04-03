@@ -24,9 +24,8 @@ entry-task
 
 ### 项目架构
 
-<center>
-    <img src="./doc/images/architecture.svg" alt="Architecture" style="zoom: 100%;" />
-</center>
+
+<img src="./doc/images/architecture.svg" alt="Architecture" style="clear: both; display: block; margin: auto;" />
 
 
 ### 项目预览
