@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 	"time"
 )
 
@@ -47,8 +46,8 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var newLog string
 
 	if entry.HasCaller() {
-		newLog = fmt.Sprintf("%s [%s] (%s:%d | %s) %s\n",
-			timestamp, entry.Level, filepath.Base(entry.Caller.File), entry.Caller.Line, entry.Caller.Function, entry.Message)
+		newLog = fmt.Sprintf("%s [%s] %s - %s\n",
+			timestamp, entry.Level, entry.Caller.Function, entry.Message)
 	} else {
 		newLog = fmt.Sprintf("%s [%s] %s\n", timestamp, entry.Level, entry.Message)
 	}

@@ -2,8 +2,8 @@ package common
 
 import (
 	"entry/tcp/cache"
+	"entry/tcp/logging"
 	"entry/tcp/model"
-	"entry/web/logging"
 	"gopkg.in/ini.v1"
 )
 

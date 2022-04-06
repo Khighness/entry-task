@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"entry/web/logging"
+	"entry/tcp/logging"
 	"github.com/go-redis/redis"
 	"gopkg.in/ini.v1"
 	"time"

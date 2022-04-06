@@ -2,7 +2,7 @@
 
 
 
-###  login API
+### login test
 
 | client | QPS     |
 | ------ | ------- |
@@ -57,8 +57,7 @@ Transfer/sec:      2.50MB
 #### client: 1500
 
 ```shell
-
-zikang.chen@C02GM1FFMD6M benchmark % wrk -t6 -c1500 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
+$ wrk -t6 -c1500 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
 Running 10s test @ http://127.0.0.1:10000/login
   6 threads and 1500 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
@@ -94,5 +93,6 @@ Running 10s test @ http://127.0.0.1:10000/login
 Requests/sec:   3622.45
 Transfer/sec:      1.78MB
 ```
+
 
 
