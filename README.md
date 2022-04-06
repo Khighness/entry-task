@@ -1,14 +1,24 @@
 ## entry-task
 
 <p align="center">
-  <img src="https://img.shields.io/badge/go-1.17-blue?style=for-the-badge&logo=go" alt="golang">
+  <img src="https://img.shields.io/badge/go-passing-blue?style=for-the-badge&logo=go" alt="go">
 </p>
 <p align="center">
   <a href="doc/entry/webapi.md">📑 WEBAPI</a> | <a href="doc/entry/deploy.md">🚀 DEPLOY</a> | <a href="doc/entry/bench.md">🛳 BENCH</a> 
 </p>
 
 
-### 项目结构
+
+### Feature
+
+- Native http API based on Go lib
+- Prefect connection pool for GRPC
+- Beautiful front page built from VUE
+- Elegant code style and exhaustive comments
+
+
+
+### Structure
 
 ```
 entry-task
@@ -22,18 +32,19 @@ entry-task
 
 
 
-### 项目架构
+### Architecture
 
 <p align="center">
 <img src="./doc/images/architecture.svg" alt="Architecture" />
 </p>
 
-### 项目预览
+
+### Preview
 
 <table>
   <tr>
-    <td>登录</td>
-    <td>个人</td>
+    <td>login</td>
+    <td>profile</td>
   </tr>
   <tr>
      <td width="50%" align="top"><img src="./doc/images/login.png"/></td>
