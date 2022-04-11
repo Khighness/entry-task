@@ -1,8 +1,8 @@
 package main
 
 import (
-	"entry/tcp/common"
-	"entry/tcp/server"
+	"github.com/Khighness/entry-task/tcp/common"
+	"github.com/Khighness/entry-task/tcp/server"
 )
 
 // @Author Chen Zikang

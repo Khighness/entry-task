@@ -1,7 +1,7 @@
 package e
 
 import (
-	"entry/tcp/common"
+	"github.com/Khighness/entry-task/tcp/common"
 	"fmt"
 )
 

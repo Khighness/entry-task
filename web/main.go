@@ -1,9 +1,9 @@
 package main
 
 import (
-	"entry/web/common"
-	"entry/web/grpc"
-	"entry/web/router"
+	"github.com/Khighness/entry-task/web/common"
+	"github.com/Khighness/entry-task/web/grpc"
+	"github.com/Khighness/entry-task/web/router"
 )
 
 // @Author Chen Zikang

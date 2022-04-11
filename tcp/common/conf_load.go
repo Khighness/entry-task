@@ -1,9 +1,9 @@
 package common
 
 import (
-	"entry/tcp/cache"
-	"entry/tcp/logging"
-	"entry/tcp/model"
+	"github.com/Khighness/entry-task/tcp/cache"
+	"github.com/Khighness/entry-task/tcp/logging"
+	"github.com/Khighness/entry-task/tcp/model"
 	"gopkg.in/ini.v1"
 )
 

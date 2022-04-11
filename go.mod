@@ -1,4 +1,4 @@
-module entry
+module github.com/Khighness/entry-task
 
 go 1.17
 

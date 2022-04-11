@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"context"
-	"entry/pb"
-	"entry/web/common"
-	"entry/web/grpc"
-	"entry/web/logging"
-	"entry/web/view"
+	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/web/common"
+	"github.com/Khighness/entry-task/web/grpc"
+	"github.com/Khighness/entry-task/web/logging"
+	"github.com/Khighness/entry-task/web/view"
 	"net/http"
 	"time"
 )

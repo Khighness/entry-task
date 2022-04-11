@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"entry/web/common"
+	"github.com/Khighness/entry-task/web/common"
 	"time"
 )
 

@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/gob"
-	"entry/rpc"
-	"entry/rpc/demo/public"
 	"errors"
+	"github.com/Khighness/entry-task/rpc"
+	"github.com/Khighness/entry-task/rpc/demo/public"
 	"log"
 )
 
@@ -14,8 +14,8 @@ import (
 
 func queryUser(uid int64) (public.ResponseQueryUser, error) {
 	db := make(map[int64]public.User)
-	db[0] = public.User{Id:0, Name: "KHighness"}
-	db[1] = public.User{Id:1, Name: "FlowerK"}
+	db[0] = public.User{Id: 0, Name: "KHighness"}
+	db[1] = public.User{Id: 1, Name: "FlowerK"}
 	if u, ok := db[uid]; ok {
 		return public.ResponseQueryUser{User: u, Msg: "success"}, nil
 	}
@@ -34,4 +34,3 @@ func main() {
 	for {
 	}
 }
-

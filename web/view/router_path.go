@@ -5,6 +5,7 @@ package view
 // @Since  2022-02-18
 
 const (
+	PingUrl          = "/ping"          // Ping
 	RegisterUrl      = "/register"      // 注册
 	LoginUrl         = "/login"         // 登录
 	GetProfileUrl    = "/user/profile"  // 获取信息

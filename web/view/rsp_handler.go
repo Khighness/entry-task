@@ -2,7 +2,7 @@ package view
 
 import (
 	"encoding/json"
-	"entry/web/common"
+	"github.com/Khighness/entry-task/web/common"
 	"net/http"
 )
 

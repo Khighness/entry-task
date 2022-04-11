@@ -3,7 +3,7 @@ package util
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"entry/tcp/common"
+	"github.com/Khighness/entry-task/tcp/common"
 )
 
 // @Author Chen Zikang

@@ -2,7 +2,7 @@ package model
 
 import (
 	"database/sql"
-	"entry/tcp/logging"
+	"github.com/Khighness/entry-task/tcp/logging"
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/ini.v1"
 	"strings"

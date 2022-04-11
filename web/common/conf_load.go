@@ -1,7 +1,7 @@
 package common
 
 import (
-	"entry/web/logging"
+	"github.com/Khighness/entry-task/web/logging"
 	"gopkg.in/ini.v1"
 )
 

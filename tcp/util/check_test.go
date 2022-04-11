@@ -1,7 +1,7 @@
 package util
 
 import (
-	"entry/tcp/common/e"
+	"github.com/Khighness/entry-task/tcp/common/e"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

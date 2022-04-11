@@ -2,14 +2,14 @@ package service
 
 import (
 	"context"
-	"entry/pb"
-	"entry/tcp/cache"
-	"entry/tcp/common"
-	"entry/tcp/common/e"
-	"entry/tcp/logging"
-	"entry/tcp/mapper"
-	"entry/tcp/model"
-	"entry/tcp/util"
+	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/tcp/cache"
+	"github.com/Khighness/entry-task/tcp/common"
+	"github.com/Khighness/entry-task/tcp/common/e"
+	"github.com/Khighness/entry-task/tcp/logging"
+	"github.com/Khighness/entry-task/tcp/mapper"
+	"github.com/Khighness/entry-task/tcp/model"
+	"github.com/Khighness/entry-task/tcp/util"
 	"time"
 )
 

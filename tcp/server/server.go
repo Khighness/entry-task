@@ -1,10 +1,10 @@
 package server
 
 import (
-	"entry/pb"
-	"entry/tcp/common"
-	"entry/tcp/logging"
-	"entry/tcp/service"
+	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/tcp/common"
+	"github.com/Khighness/entry-task/tcp/logging"
+	"github.com/Khighness/entry-task/tcp/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"

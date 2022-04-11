@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/gob"
-	"entry/rpc/demo/public"
+	"github.com/Khighness/entry-task/rpc/demo/public"
 )
 
 // @Author KHighness

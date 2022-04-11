@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"entry/tcp/model"
+	"github.com/Khighness/entry-task/tcp/model"
 	"time"
 )
 

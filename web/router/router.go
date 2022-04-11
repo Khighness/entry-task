@@ -1,11 +1,11 @@
 package router
 
 import (
-	"entry/web/common"
-	"entry/web/controller"
-	"entry/web/logging"
-	"entry/web/middleware"
-	"entry/web/view"
+	"github.com/Khighness/entry-task/web/common"
+	"github.com/Khighness/entry-task/web/controller"
+	"github.com/Khighness/entry-task/web/logging"
+	"github.com/Khighness/entry-task/web/middleware"
+	"github.com/Khighness/entry-task/web/view"
 	"net/http"
 )
 
@@ -16,6 +16,7 @@ import (
 // Start 启动web server
 func Start() {
 	userController := controller.UserController{}
+	http.HandleFunc(view.PingUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.Ping)))
 	http.HandleFunc(view.RegisterUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.Register)))
 	http.HandleFunc(view.LoginUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.Login)))
 	http.HandleFunc(view.GetProfileUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(middleware.TokenMiddleWare(userController.GetProfile))))

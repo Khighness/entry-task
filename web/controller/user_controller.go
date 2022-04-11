@@ -3,12 +3,12 @@ package controller
 import (
 	"context"
 	"encoding/json"
-	"entry/pb"
-	"entry/web/common"
-	"entry/web/grpc"
-	"entry/web/util"
-	"entry/web/view"
 	"fmt"
+	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/web/common"
+	"github.com/Khighness/entry-task/web/grpc"
+	"github.com/Khighness/entry-task/web/util"
+	"github.com/Khighness/entry-task/web/view"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -22,6 +22,11 @@ import (
 // @Since  2022-02-15
 
 type UserController struct{}
+
+// Ping Return Pong
+func (userController *UserController) Ping(w http.ResponseWriter, r *http.Request) {
+	view.HandleBizSuccess(w, "Pong")
+}
 
 // Register 用户注册
 func (userController *UserController) Register(w http.ResponseWriter, r *http.Request) {

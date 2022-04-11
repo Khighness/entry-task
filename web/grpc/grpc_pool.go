@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"entry/pb"
+	"github.com/Khighness/entry-task/pb"
 	"errors"
 	"sync"
 	"time"
