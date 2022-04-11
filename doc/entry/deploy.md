@@ -6,12 +6,11 @@
 
 
 ```shell
-$ mkdir -p /Users/zikang.chen/Docker/mysql/data /Users/zikang.chen/Docker/mysql/conf
+$ mkdir -p ~/Docker/mysql/data ~/Docker/mysql/conf
 $ docker run --name mysql -d -p 3306:3306 \
--e MYSQL_ROOT_PASSWORD=KAG1823 mysql:8.0.20
-$ docker cp mysql:/etc/mysql/my.cnf /Users/zikang.chen/Docker/mysql/conf
-$ vim /Users/zikang.chen/Docker/mysql/conf/my.cnf
-# ADD
+-e MYSQL_ROOT_PASSWORD=KANG1823 mysql:8.0.20
+$ docker cp mysql:/etc/mysql/my.cnf ~/Docker/mysql/conf
+$ cat << EOF >>~/Docker/mysql/conf/my.cnf
 [mysqld]
 character-set-server=utf8
 max_connections=30000
@@ -19,19 +18,19 @@ max_connections=30000
 default-character-set=utf8
 [mysql]
 default-character-set=utf8
+EOF
 
 $ docker stop mysql && docker rm mysql
 $ docker run --name mysql \
 -d -p 3306:3306  \
--e MYSQL_ROOT_PASSWORD=KAG1823 \
--v /Users/zikang.chen/Docker/mysql/conf/my.cnf:/etc/mysql/my.cnf \
--v /Users/zikang.chen/Docker/mysql/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=KANG1823 \
+-v ~/Docker/mysql/conf/my.cnf:/etc/mysql/my.cnf \
+-v ~/Docker/mysql/data:/var/lib/mysql \
 --restart=on-failure:3 \
 mysql:8.0.20
 $ docker exec -it mysql bash
-$ mysql -u root -p KAG1823
+$ mysql -u root -p KANG1823
 $ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KANG1823';
-
 ```
 
 
@@ -40,12 +39,11 @@ $ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KANG1823';
 
 
 ```shell
-$ mkdir -p /Users/zikang.chen/Docker/redis/data /Users/zikang.chen/Docker/redis/conf
-$ cd /Users/zikang.chen/Docker/redis/conf
+$ mkdir -p ~/Docker/redis/data ~/Docker/redis/conf
+$ cd ~/Docker/redis/conf
 $ touch redis.conf
-$ cat << EOF >>/Users/zikang.chen/Docker/redis/conf/redis.conf
+$ cat << EOF >>~/Docker/redis/conf/redis.conf
 port 6379
-#bind 0.0.0.0
 daemonize no
 protected-mode no
 requirepass KANG1823
@@ -66,8 +64,8 @@ save 900 1
 EOF
 
 $ docker run -d -p 6379:6379 --name redis \
--v /Users/zikang.chen/Docker/redis/data:/data \
--v /Users/zikang.chen/Docker/redis/conf/redis.conf:/etc/redis/redis.conf \
+-v ~/Docker/redis/data:/data \
+-v ~/Docker/redis/conf/redis.conf:/etc/redis/redis.conf \
 redis:6.2.6 \
 --requirepass "KANG1823" 
 ```
@@ -108,4 +106,10 @@ $ npm install
 $ npm run serve
 ```
 
-TODO 二进制文件
+
+
+### 🌈 Todo
+
+- [ ] Dockerfile
+- [ ] docker-compose
+
