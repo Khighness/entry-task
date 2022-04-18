@@ -22,7 +22,8 @@
 
 ```
 entry-task
-    ├─doc              docs
+    ├─bin              build script          
+    ├─doc              mysql & docs
     ├─front            vue frontend
     ├─pb               grpc proto
     ├─rpc              rpc implement

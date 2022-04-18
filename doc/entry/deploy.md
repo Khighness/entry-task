@@ -1,8 +1,9 @@
 ## entry task deploy document
 
+### Run in local development
 
 
-### 🐬 MySQL
+#### 🐬 MySQL
 
 
 ```shell
@@ -35,7 +36,7 @@ $ ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY 'KANG1823';
 
 
 
-### 💠 Redis
+#### 💠 Redis
 
 
 ```shell
@@ -72,7 +73,7 @@ redis:6.2.6 \
 
 
 
-### 🚀 Start
+#### 🚀 Start
 
 1. 导入脚本
 
@@ -106,10 +107,4 @@ $ npm install
 $ npm run serve
 ```
 
-
-
-### 🌈 Todo
-
-- [ ] Dockerfile
-- [ ] docker-compose
 

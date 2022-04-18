@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/tcp/logging"
 	"github.com/Khighness/entry-task/web/common"
 	"github.com/Khighness/entry-task/web/grpc"
 	"github.com/Khighness/entry-task/web/util"
@@ -159,12 +160,14 @@ func (userController *UserController) ShowAvatar(w http.ResponseWriter, r *http.
 		return
 	}
 	profilePicture := strings.TrimLeft(r.URL.Path, view.ShowAvatarUrl)
-	_, err := os.Stat(common.AvatarStoragePath + profilePicture)
+	profilePictirePath := common.AvatarStoragePath + profilePicture
+	_, err := os.Stat(profilePictirePath)
 	if os.IsNotExist(err) {
 		view.HandleBizError(w, profilePicture+" does not exist")
+		logging.Log.Warn(profilePictirePath + " does not exist")
 		return
 	}
-	file, _ := os.OpenFile(common.AvatarStoragePath+profilePicture, os.O_RDONLY, 0444)
+	file, _ := os.OpenFile(profilePictirePath, os.O_RDONLY, 0444)
 	defer file.Close()
 	buf, _ := ioutil.ReadAll(file)
 	_, _ = w.Write(buf)

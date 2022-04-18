@@ -1,12 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-main="main.go"
-tcpServer="tcp-server"
-webServer="web-server"
+cd ..
 
-echo "golang building tcp-server ..."
-GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o tcp/${tcpServer} ../tcp/${main}
-echo "build tcp-server successfully!"
-echo "golang building web-server ..."
-GO111MODULE=on GOOS=linux GOARCH=amd64 go build -o web/${webServer} ../web/${main}
-echo "build web-server successfully!"
+# tcp
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image tcp-server ..."
+docker build -t khighness/entry-tcp-server:v1 -f ./tcp/Dockerfile .
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) build tcp-server successfully!"
+
+# web
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image web-server ..."
+docker build -t khighness/entry-web-server:v1 -f ./web/Dockerfile .
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) build web-server successfully!"
+
