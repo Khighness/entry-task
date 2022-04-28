@@ -17,9 +17,10 @@ import (
 // @Since  2022-02-22
 
 const (
-	dateFormat string = "2006-01-02"
-	timeFormat string = "2006-01-02 15:04:05"
-	fileSuffix string = ".log"
+	dateFormat        = "2006-01-02"
+	timeFormat        = "2006-01-02 15:04:05.999"
+	maxFunctionLength = 40
+	fileSuffix        = ".log"
 )
 
 var Log *logrus.Logger
@@ -54,8 +55,15 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		logLevel = logLevel + " "
 	}
 	function := entry.Caller.Function[strings.LastIndex(entry.Caller.Function, "/")+1:]
-	logStr := fmt.Sprintf("%s [%s] %s - %s\n",
-		datetime, logLevel, function, entry.Message)
+	funcLen := len(function)
+	if funcLen < maxFunctionLength {
+		for i := 0; i < maxFunctionLength-funcLen; i++ {
+			function = function + " "
+		}
+	} else if funcLen > maxFunctionLength {
+		function = function[len(function)-maxFunctionLength:]
+	}
+	logStr := fmt.Sprintf("%s %s [%s] - %s\n", datetime, logLevel, function, entry.Message)
 
 	buf.WriteString(logStr)
 	return buf.Bytes(), nil
