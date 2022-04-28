@@ -19,7 +19,7 @@ import (
 const (
 	dateFormat        = "2006-01-02"
 	timeFormat        = "2006-01-02 15:04:05.999"
-	maxFunctionLength = 40
+	maxFunctionLength = 30
 	fileSuffix        = ".log"
 )
 
