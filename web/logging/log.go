@@ -51,7 +51,9 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 	}
 	logLevel := strings.ToUpper(entry.Level.String())
-	if len(logLevel) < 5 {
+	if len(logLevel) > 5 {
+		logLevel = logLevel[:5]
+	} else if len(logLevel) < 5 {
 		logLevel = logLevel + " "
 	}
 	function := entry.Caller.Function[strings.LastIndex(entry.Caller.Function, "/")+1:]
