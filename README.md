@@ -26,8 +26,9 @@
 
 ```
 entry-task
-    ├─bin              build script          
-    ├─doc              mysql & docs
+    ├─bin              shell scripts    
+    ├─cmd              start files          
+    ├─doc              all documents
     ├─front            vue frontend
     ├─pb               grpc proto
     ├─rpc              rpc implement
@@ -56,3 +57,24 @@ entry-task
      <td width="50%" align="top"><img src="./doc/images/profile.png"/></td>
   </tr>
 </table>
+
+
+### Build
+
+First, you should modify the configuration files `application-tcp.yml` and `application-web.yml`.
+
+Next, you can build the docker images by the following command:
+```shell
+./bin/build.sh
+```
+
+Then, you can start the services by the following command：
+```shell
+./bin/start.sh
+```
+
+
+
+### License
+
+Khighness's entry-task is open-sourced software licensed under the [MIT license](https://github.com/Khighness/entry-task/blob/master/LICENSE).
