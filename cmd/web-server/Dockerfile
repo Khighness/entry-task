@@ -9,6 +9,7 @@ RUN cd /src/cmd/web-server && make linux
 FROM debian:buster-20191014-slim as linux
 WORKDIR /var/web-svc/
 ADD ./application-web.yml .
+ADD ./web/public/avatar ./web/public/avatar
 COPY --from=golang /src/cmd/web-server/web-svc /bin/
 EXPOSE 10000
 CMD ["/bin/web-svc"]

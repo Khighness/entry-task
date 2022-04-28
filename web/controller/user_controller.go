@@ -160,15 +160,16 @@ func (userController *UserController) ShowAvatar(w http.ResponseWriter, r *http.
 		view.HandleMethodError(w, "Allowed Method: [GET]")
 		return
 	}
+
 	profilePicture := strings.TrimLeft(r.URL.Path, view.ShowAvatarUrl)
-	profilePictirePath := common.AvatarStoragePath + profilePicture
-	_, err := os.Stat(profilePictirePath)
+	profilePicturePath := common.AvatarStoragePath + profilePicture
+	_, err := os.Stat(profilePicturePath)
 	if os.IsNotExist(err) {
 		view.HandleBizError(w, profilePicture+" does not exist")
-		logging.Log.Warn(profilePictirePath + " does not exist")
+		logging.Log.Warn(profilePicturePath + " does not exist")
 		return
 	}
-	file, _ := os.OpenFile(profilePictirePath, os.O_RDONLY, 0444)
+	file, _ := os.OpenFile(profilePicturePath, os.O_RDONLY, 0444)
 	defer file.Close()
 	buf, _ := ioutil.ReadAll(file)
 	_, _ = w.Write(buf)
