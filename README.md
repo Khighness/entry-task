@@ -1,8 +1,12 @@
 ## entry-task
 
 <p align="center">
-  <img src="https://img.shields.io/badge/go-passing-blue?style=for-the-badge&logo=go" alt="go">
+  <img src="https://img.shields.io/badge/go-backend-9cf?style=flat-square&logo=go" alt="go">
+  <img src="https://img.shields.io/badge/vue-frontend-green?style=flat-square&logo=vue.js" alt="vue">
+  <img src="https://img.shields.io/badge/docker-build-orange?style=flat-square&logo=docker" alt="docker">
+  <img src="https://img.shields.io/badge/kubernetes-support-blueviolet?style=flat-square&logo=kubernetes" alt="kubernetes">
 </p>
+
 <p align="center">
   <a href="doc/entry/webapi.md">📑 WEBAPI</a> | <a href="doc/entry/deploy.md">🚀 DEPLOY</a> | <a href="doc/entry/bench.md">🛳 BENCH</a> 
 </p>

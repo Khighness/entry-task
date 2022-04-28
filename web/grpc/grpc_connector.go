@@ -2,8 +2,8 @@ package grpc
 
 import (
 	"context"
-	"github.com/Khighness/entry-task/pb"
 	"errors"
+	"github.com/Khighness/entry-task/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
