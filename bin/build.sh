@@ -1,14 +1,13 @@
 #!/bin/sh
 
-cd ..
-
 # tcp
-echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image tcp-server ..."
-docker build -t khighness/entry-tcp-server:v1 -f ./tcp/Dockerfile .
-echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) build tcp-server successfully!"
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image tcp-svc ..."
+docker build -t entry/tcp-svc -f cmd/tcp-server/Dockerfile .
 
 # web
-echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image web-server ..."
-docker build -t khighness/entry-web-server:v1 -f ./web/Dockerfile .
-echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) build web-server successfully!"
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image web-svc ..."
+docker build -t entry/web-svc -f cmd/web-server/Dockerfile .
 
+# vue
+echo "$(TZ=UTC-8 date +%Y-%m-%d" "%H:%M:%S) building image front-svc  ..."
+docker build -t entry/front-svc -f cmd/front-end/Dockerfile .

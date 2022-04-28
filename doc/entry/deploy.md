@@ -90,13 +90,13 @@ $ go mod tidy
 3. 启动tcp server
 
 ```shell
-$ go run tcp/main.go
+$ go run cmd/tcp-server/main.go
 ```
 
 4. 启动web server
 
 ```shell
-$ go run web/main.go
+$ go run cmd/web-server/main.go
 ```
 
 5. 启动vue
