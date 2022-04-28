@@ -13,7 +13,6 @@ mysql:
   max-life-time: 3600
   max-idle-time: 3600
 
-
 redis:
   addr: 127.0.0.1:6379
   pass: KANG1823

@@ -12,12 +12,12 @@ import (
 var GP *GrpcPool
 
 func InitPool() {
-	rpcServerAddr := config.AppCfg.Rpc.Addr
-	connector := GrpcConnector{GrpcServerAddr: rpcServerAddr}
+	rpcCfg := config.AppCfg.Rpc
+	connector := GrpcConnector{GrpcServerAddr: rpcCfg.Addr}
 	GP = NewGrpcPool(connector, &GrpcPoolConfig{
-		MaxOpenCount: 10000,
-		MaxIdleCount: 5000,
-		MaxLifeTime:  30 * time.Minute,
-		MaxIdleTime:  10 * time.Minute,
+		MaxOpenCount: rpcCfg.MaxOpen,
+		MaxIdleCount: rpcCfg.MaxIdle,
+		MaxLifeTime:  time.Duration(rpcCfg.MaxLiftTime) * time.Second,
+		MaxIdleTime:  time.Duration(rpcCfg.MaxIdleTime) * time.Second,
 	})
 }

@@ -21,7 +21,11 @@ type ServerConfig struct {
 }
 
 type RpcConfig struct {
-	Addr string `yaml:"addr"`
+	Addr        string `yaml:"addr"`
+	MaxOpen     int    `yaml:"max-open"`
+	MaxIdle     int    `yaml:"max-idle"`
+	MaxLiftTime int    `yaml:"max-lift-time"`
+	MaxIdleTime int    `yaml:"max-idle-time"`
 }
 
 var AppCfg *AppConfig
