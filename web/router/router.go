@@ -1,7 +1,8 @@
 package router
 
 import (
-	"github.com/Khighness/entry-task/web/common"
+	"fmt"
+	"github.com/Khighness/entry-task/web/config"
 	"github.com/Khighness/entry-task/web/controller"
 	"github.com/Khighness/entry-task/web/logging"
 	"github.com/Khighness/entry-task/web/middleware"
@@ -24,9 +25,12 @@ func Start() {
 	http.HandleFunc(view.ShowAvatarUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.ShowAvatar)))
 	http.HandleFunc(view.UploadAvatarUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(middleware.TokenMiddleWare(userController.UploadAvatar))))
 	http.HandleFunc(view.LogoutUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.Logout)))
-	logging.Log.Infof("Web server is serving at [%s]", common.HttpServerAddr)
-	err := http.ListenAndServe(common.HttpServerAddr, nil)
+
+	serverCfg := config.AppCfg.Server
+	serverAddr := fmt.Sprintf("%s:%d", serverCfg.Host, serverCfg.Port)
+	logging.Log.Infof("Web server is serving at [%s]", serverAddr)
+	err := http.ListenAndServe(serverAddr, nil)
 	if err != nil {
-		logging.Log.Fatalf("Failed to start web server at [%s]", common.HttpServerAddr)
+		logging.Log.Fatalf("Failed to start web server, error: %s", err)
 	}
 }

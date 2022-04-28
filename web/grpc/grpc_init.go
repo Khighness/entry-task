@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	"github.com/Khighness/entry-task/web/common"
+	"github.com/Khighness/entry-task/web/config"
 	"time"
 )
 
@@ -11,8 +11,9 @@ import (
 
 var GP *GrpcPool
 
-func Init() {
-	connector := GrpcConnector{GrpcServerAddr: common.RpcServerAddr}
+func InitPool() {
+	rpcServerAddr := config.AppCfg.Rpc.Addr
+	connector := GrpcConnector{GrpcServerAddr: rpcServerAddr}
 	GP = NewGrpcPool(connector, &GrpcPoolConfig{
 		MaxOpenCount: 10000,
 		MaxIdleCount: 5000,

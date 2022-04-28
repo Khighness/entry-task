@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
@@ -17,7 +18,7 @@ import (
 
 const (
 	dateFormat string = "2006-01-02"
-	timeFormat string = "2006-01-02 15:04:05"
+	timeFormat string = "2006-01-02 15:04:05.999"
 	fileSuffix string = ".log"
 )
 
@@ -42,17 +43,21 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		buf = &bytes.Buffer{}
 	}
 
-	timestamp := entry.Time.Format(timeFormat)
-	var newLog string
-
-	if entry.HasCaller() {
-		newLog = fmt.Sprintf("%s [%s] %s - %s\n",
-			timestamp, entry.Level, entry.Caller.Function, entry.Message)
-	} else {
-		newLog = fmt.Sprintf("%s [%s] %s\n", timestamp, entry.Level, entry.Message)
+	datetime := entry.Time.Format(timeFormat)
+	if len(datetime) < len(timeFormat) {
+		for i := 0; i < len(timeFormat)-len(datetime); i++ {
+			datetime = datetime + "0"
+		}
 	}
+	logLevel := strings.ToUpper(entry.Level.String())
+	if len(logLevel) < 5 {
+		logLevel = logLevel + " "
+	}
+	function := entry.Caller.Function[strings.LastIndex(entry.Caller.Function, "/")+1:]
+	logStr := fmt.Sprintf("%s [%s] %s - %s\n",
+		datetime, logLevel, function, entry.Message)
 
-	buf.WriteString(newLog)
+	buf.WriteString(logStr)
 	return buf.Bytes(), nil
 }
 

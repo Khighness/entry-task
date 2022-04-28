@@ -4,11 +4,6 @@ package common
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-var (
-	HttpServerAddr string
-	RpcServerAddr  string
-)
-
 const (
 	HeaderTokenKey    = "Authorization"
 	AvatarStoragePath = "./web/public/avatar/"

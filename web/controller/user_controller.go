@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Khighness/entry-task/pb"
-	"github.com/Khighness/entry-task/tcp/logging"
 	"github.com/Khighness/entry-task/web/common"
+	"github.com/Khighness/entry-task/web/config"
 	"github.com/Khighness/entry-task/web/grpc"
+	"github.com/Khighness/entry-task/web/logging"
 	"github.com/Khighness/entry-task/web/util"
 	"github.com/Khighness/entry-task/web/view"
 	"io"
@@ -197,7 +198,10 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 		return
 	}
 	avatarName := fmt.Sprintf("%d-%s", time.Now().Unix(), header.Filename)
-	profilePicture := fmt.Sprintf("http://%s%s%s", common.HttpServerAddr, view.ShowAvatarUrl, avatarName)
+
+	serverCfg := config.AppCfg.Server
+	serverAddr := fmt.Sprintf("%s:%d", serverCfg.Host, serverCfg.Port)
+	profilePicture := fmt.Sprintf("http://%s%s%s", serverAddr, view.ShowAvatarUrl, avatarName)
 	createFile, err := os.OpenFile(common.AvatarStoragePath+avatarName, os.O_WRONLY|os.O_CREATE, 0766)
 	defer createFile.Close()
 	_, err = createFile.Write(fileStream)

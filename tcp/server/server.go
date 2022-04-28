@@ -1,8 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"github.com/Khighness/entry-task/pb"
-	"github.com/Khighness/entry-task/tcp/common"
+	"github.com/Khighness/entry-task/tcp/config"
 	"github.com/Khighness/entry-task/tcp/logging"
 	"github.com/Khighness/entry-task/tcp/service"
 	"google.golang.org/grpc"
@@ -19,7 +20,9 @@ import (
 
 // Start 启动tcp server
 func Start() {
-	listener, err := net.Listen("tcp", common.ServerAddr)
+	serverCfg := config.AppCfg.Server
+	serverAddr := fmt.Sprintf("%s:%d", serverCfg.Host, serverCfg.Port)
+	listener, err := net.Listen("tcp", serverAddr)
 	if err != nil {
 		log.Fatalln("Failed to start tcp server :", err)
 	}
@@ -38,9 +41,9 @@ func Start() {
 	s := grpc.NewServer(grpc.KeepaliveEnforcementPolicy(enforcementPolicy), grpc.KeepaliveParams(serverParameters))
 	pb.RegisterUserServiceServer(s, &service.Server{})
 	reflection.Register(s)
-	logging.Log.Printf("GRPC tcp server is serving at [%s]", common.ServerAddr)
+	logging.Log.Printf("GRPC tcp server is serving at [%s]", serverAddr)
 
 	if err = s.Serve(listener); err != nil {
-		logging.Log.Fatalf("GRPC tcp server failed to serve at [%s]: %s", common.ServerAddr, err)
+		logging.Log.Fatalf("GRPC tcp server failed to serve at [%s]: %s", serverAddr, err)
 	}
 }
