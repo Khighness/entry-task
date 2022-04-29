@@ -6,7 +6,8 @@ COPY ./go.sum /src/
 COPY ./cmd/web-server /src/cmd/web-server
 RUN cd /src/cmd/web-server && make linux
 
-FROM debian:buster-20191014-slim as linux
+FROM centos:7.9.2009 as linux
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 WORKDIR /var/web-svc/
 ADD ./application-web.yml .
 ADD ./web/public/avatar ./web/public/avatar
