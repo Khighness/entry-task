@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/Khighness/entry-task/pb"
 	"github.com/Khighness/entry-task/tcp/cache"
 	"github.com/Khighness/entry-task/tcp/common"
@@ -10,7 +12,6 @@ import (
 	"github.com/Khighness/entry-task/tcp/mapper"
 	"github.com/Khighness/entry-task/tcp/model"
 	"github.com/Khighness/entry-task/tcp/util"
-	"time"
 )
 
 // @Author Chen Zikang
@@ -20,6 +21,7 @@ import (
 // TODO 对表单输入过滤
 // TODO 防止XSRF攻击
 
+// Server TCP服务器
 type Server struct{}
 
 var (

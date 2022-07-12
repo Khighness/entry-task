@@ -1,9 +1,10 @@
 package util
 
 import (
+	"regexp"
+
 	"github.com/Khighness/entry-task/tcp/common"
 	"github.com/Khighness/entry-task/tcp/common/e"
-	"regexp"
 )
 
 // @Author Chen Zikang

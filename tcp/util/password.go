@@ -3,6 +3,7 @@ package util
 import (
 	"crypto/md5"
 	"encoding/hex"
+
 	"golang.org/x/crypto/bcrypt"
 )
 

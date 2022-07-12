@@ -4,6 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/Khighness/entry-task/pb"
 	"github.com/Khighness/entry-task/web/common"
 	"github.com/Khighness/entry-task/web/config"
@@ -11,18 +18,13 @@ import (
 	"github.com/Khighness/entry-task/web/logging"
 	"github.com/Khighness/entry-task/web/util"
 	"github.com/Khighness/entry-task/web/view"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
-	"time"
 )
 
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
+// UserController 用户控制器
 type UserController struct{}
 
 // Ping Return Pong

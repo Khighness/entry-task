@@ -5,7 +5,9 @@ package common
 // @Since  2022-02-15
 
 const (
-	HeaderTokenKey    = "Authorization"
+	// HeaderTokenKey HTTP请求Header中的令牌Key
+	HeaderTokenKey = "Authorization"
+	// AvatarStoragePath 头像存储相对路径
 	AvatarStoragePath = "./web/public/avatar/"
 )
 

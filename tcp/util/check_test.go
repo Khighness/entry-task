@@ -1,9 +1,11 @@
 package util
 
 import (
-	"github.com/Khighness/entry-task/tcp/common/e"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/Khighness/entry-task/tcp/common/e"
 )
 
 // @Author Chen Zikang

@@ -3,13 +3,14 @@ package logging
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"log"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 // @Author Chen Zikang

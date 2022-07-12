@@ -2,10 +2,11 @@ package grpc
 
 import (
 	"context"
-	"github.com/Khighness/entry-task/pb"
 	"errors"
 	"sync"
 	"time"
+
+	"github.com/Khighness/entry-task/pb"
 )
 
 // @Author Chen Zikang

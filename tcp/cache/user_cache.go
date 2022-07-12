@@ -1,8 +1,9 @@
 package cache
 
 import (
-	"github.com/Khighness/entry-task/tcp/model"
 	"time"
+
+	"github.com/Khighness/entry-task/tcp/model"
 )
 
 // @Author Chen Zikang
@@ -16,6 +17,7 @@ const (
 	UserTokenTimeout   = time.Hour * 24
 )
 
+// UserCache 用户缓存操作
 type UserCache struct {
 }
 

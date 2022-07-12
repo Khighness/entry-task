@@ -4,10 +4,10 @@ package common
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-// TokenBytes token字节数组长度
-// DefaultProfilePicture 注册的默认图片
 const (
-	TokenBytes            = 16
+	// TokenBytes Token字节数组长度
+	TokenBytes = 16
+	// DefaultProfilePicture 注册账户的默认头像
 	DefaultProfilePicture = "http://127.0.0.1:10000/avatar/show/default.jpg"
 )
 

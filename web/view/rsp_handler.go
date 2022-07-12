@@ -2,8 +2,9 @@ package view
 
 import (
 	"encoding/json"
-	"github.com/Khighness/entry-task/web/common"
 	"net/http"
+
+	"github.com/Khighness/entry-task/web/common"
 )
 
 // @Author Chen Zikang

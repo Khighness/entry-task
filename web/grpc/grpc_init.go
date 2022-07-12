@@ -1,8 +1,9 @@
 package grpc
 
 import (
-	"github.com/Khighness/entry-task/web/config"
 	"time"
+
+	"github.com/Khighness/entry-task/web/config"
 )
 
 // @Author Chen Zikang

@@ -1,10 +1,12 @@
 package cache
 
 import (
+	"time"
+
+	"github.com/go-redis/redis"
+
 	"github.com/Khighness/entry-task/tcp/config"
 	"github.com/Khighness/entry-task/tcp/logging"
-	"github.com/go-redis/redis"
-	"time"
 )
 
 // @Author Chen Zikang

@@ -4,6 +4,7 @@ package model
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-18
 
+// User 用户
 type User struct {
 	Id             int64
 	Username       string

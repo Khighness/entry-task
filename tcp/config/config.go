@@ -1,9 +1,11 @@
 package config
 
 import (
-	"github.com/Khighness/entry-task/tcp/logging"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
+
+	"github.com/Khighness/entry-task/tcp/logging"
 )
 
 // @Author Chen Zikang

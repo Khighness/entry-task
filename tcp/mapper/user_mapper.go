@@ -8,6 +8,7 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-16
 
+// UserMapper 用户数据库操作
 type UserMapper struct {
 }
 
