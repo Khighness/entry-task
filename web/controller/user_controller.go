@@ -35,7 +35,7 @@ func (userController *UserController) Ping(w http.ResponseWriter, r *http.Reques
 // Register 用户注册
 func (userController *UserController) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		view.HandleMethodError(w, "Allowed Method: [GET]")
+		view.HandleMethodError(w, "Allowed Method: [POST]")
 		return
 	}
 	var registerReq common.RegisterRequest
@@ -64,7 +64,7 @@ func (userController *UserController) Register(w http.ResponseWriter, r *http.Re
 // Login 用户登录
 func (userController *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		view.HandleMethodError(w, "Allowed Method: [GET]")
+		view.HandleMethodError(w, "Allowed Method: [POST]")
 		return
 	}
 	var loginReq common.LoginRequest
