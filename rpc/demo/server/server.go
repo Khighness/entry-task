@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/gob"
 	"errors"
+	"log"
+
 	"github.com/Khighness/entry-task/rpc"
 	"github.com/Khighness/entry-task/rpc/demo/public"
-	"log"
 )
 
 // @Author Chen Zikang
