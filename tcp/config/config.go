@@ -49,7 +49,7 @@ type RedisConfig struct {
 
 var AppCfg *AppConfig
 
-func init() {
+func Load() {
 	AppCfg = &AppConfig{}
 	applicationFile, err := ioutil.ReadFile("application-tcp.yml")
 	if err != nil {

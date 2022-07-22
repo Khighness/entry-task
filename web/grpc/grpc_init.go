@@ -18,7 +18,7 @@ func InitPool() {
 	GP = NewGrpcPool(connector, &GrpcPoolConfig{
 		MaxOpenCount: rpcCfg.MaxOpen,
 		MaxIdleCount: rpcCfg.MaxIdle,
-		MaxLifeTime:  time.Duration(rpcCfg.MaxLiftTime) * time.Second,
+		MaxLifeTime:  time.Duration(rpcCfg.MaxLifeTime) * time.Second,
 		MaxIdleTime:  time.Duration(rpcCfg.MaxIdleTime) * time.Second,
 	})
 }

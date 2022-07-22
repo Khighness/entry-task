@@ -26,13 +26,13 @@ type RpcConfig struct {
 	Addr        string `yaml:"addr"`
 	MaxOpen     int    `yaml:"max-open"`
 	MaxIdle     int    `yaml:"max-idle"`
-	MaxLiftTime int    `yaml:"max-lift-time"`
+	MaxLifeTime int    `yaml:"max-life-time"`
 	MaxIdleTime int    `yaml:"max-idle-time"`
 }
 
 var AppCfg *AppConfig
 
-func init() {
+func Load() {
 	AppCfg = &AppConfig{}
 	applicationFile, err := ioutil.ReadFile("application-web.yml")
 	if err != nil {
