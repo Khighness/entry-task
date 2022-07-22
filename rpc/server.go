@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"reflect"
 )
 
@@ -14,6 +15,7 @@ import (
 
 // Server struct
 type Server struct {
+	logger    *log.Logger
 	addr      string
 	functions map[string]reflect.Value
 }
@@ -21,6 +23,7 @@ type Server struct {
 // NewServer create a new server
 func NewServer(addr string) *Server {
 	return &Server{
+		logger:    log.New(os.Stdout, "[RPC] ", log.Lshortfile|log.Ldate|log.Ltime|log.Lmicroseconds),
 		addr:      addr,                           // the net address of server
 		functions: make(map[string]reflect.Value), // key: the name of func , value: reflect Value of function
 	}
@@ -30,17 +33,17 @@ func NewServer(addr string) *Server {
 func (s *Server) Run() {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		log.Printf("Listen at %s err: %v \n", s.addr, err)
+		s.logger.Printf("Listen at %s err: %v \n", s.addr, err)
 		return
 	}
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Printf("Accept client err: %v\n", err)
+			s.logger.Printf("Accept client err: %v\n", err)
 			continue
 		} else {
-			log.Printf("Accept client %s\n", conn.RemoteAddr())
+			s.logger.Printf("Accept client: %s\n", conn.RemoteAddr())
 		}
 
 		go func() {
@@ -50,7 +53,7 @@ func (s *Server) Run() {
 				req, err := srvTransport.Receive()
 				if err != nil {
 					if err != io.EOF {
-						log.Printf("Read request err: %v\n", err)
+						s.logger.Printf("Read request err: %v\n", err)
 					}
 					return
 				}
@@ -59,13 +62,13 @@ func (s *Server) Run() {
 				// if function requested does not exist
 				if !ok {
 					e := fmt.Sprintf("Func %s does not exist", req.Name)
-					log.Printf(e)
+					s.logger.Printf(e)
 					if err = srvTransport.Send(Data{Name: req.Name, Err: e}); err != nil {
-						log.Printf("Transport write err: %v\n", err)
+						s.logger.Printf("Transport write err: %v\n", err)
 					}
 					continue
 				}
-				log.Printf("Func %s is called\n", req.Name)
+				s.logger.Printf("Call func: %s\n", req.Name)
 
 				// un package function arguments
 				inArgs := make([]reflect.Value, len(req.Args))
@@ -89,7 +92,7 @@ func (s *Server) Run() {
 				// send response to client
 				err = srvTransport.Send(Data{Name: req.Name, Args: outArgs, Err: e})
 				if err != nil {
-					log.Printf("Transport write err: %v\n", err)
+					s.logger.Printf("Transport write err: %v\n", err)
 				}
 			}
 		}()

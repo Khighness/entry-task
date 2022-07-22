@@ -19,7 +19,6 @@ var QueryUser func(int64) (public.ResponseQueryUser, error)
 
 func main() {
 	gob.Register(public.ResponseQueryUser{})
-	gob.Register(public.ResponseQueryUser{})
 
 	ctx := context.Background()
 	config := &rpc.Config{
@@ -27,13 +26,16 @@ func main() {
 		MaxIdleCount:  2,
 		RpcServerAddr: "127.0.0.1:30000",
 	}
-	connPool := rpc.Init(ctx, config)
+	connPool := rpc.NewPool(config)
 	permission1, _ := connPool.Achieve(ctx)
+	log.Printf("%+v", connPool.Stat())
 	permission2, _ := connPool.Achieve(ctx)
-	permission3, _ := connPool.Achieve(ctx)
-	go connPool.Achieve(ctx)
+	log.Printf("%+v", connPool.Stat())
 
-	permission1.RpcCli.Call("queryUser", &QueryUser)
+	queryUser := func(client *rpc.Client) {
+		client.Call("queryUser", &QueryUser)
+	}
+	connPool.Exec(ctx, queryUser)
 	u, err := QueryUser(1)
 	if err != nil {
 		log.Printf("query error: %v\n", err)
@@ -43,20 +45,21 @@ func main() {
 
 	time.Sleep(2 * time.Second)
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(2)
 
 	go func() {
 		connPool.Release(permission1.RpcCli, ctx)
+		log.Printf("%+v", connPool.Stat())
 		wg.Done()
 	}()
 	go func() {
 		connPool.Release(permission2.RpcCli, ctx)
-		wg.Done()
-	}()
-	go func() {
-		connPool.Release(permission3.RpcCli, ctx)
+		log.Printf("%+v", connPool.Stat())
 		wg.Done()
 	}()
 
 	wg.Wait()
+
+	time.Sleep(2 * time.Second)
+	log.Printf("%+v", connPool.Stat())
 }

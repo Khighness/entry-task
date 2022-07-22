@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -14,8 +15,10 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-21
 
+// ConnPool 连接池
 type ConnPool struct {
-	lock sync.Mutex // 锁
+	logger *log.Logger // 日志
+	lock   sync.Mutex  // 锁
 
 	connPool      []int                   // 连接池
 	openCount     int                     // 当前连接数
@@ -29,6 +32,7 @@ type ConnPool struct {
 	rpcServerAddr string // 远程服务器地址
 }
 
+// Permission 权限，包装连接
 type Permission struct {
 	NextConnIndex
 	RpcCli      *Client
@@ -36,21 +40,29 @@ type Permission struct {
 	MaxLifeTime time.Duration
 }
 
+// NextConnIndex 下一个连接的标识
 type NextConnIndex struct {
 	Index int
 }
 
+// Stat 连接池状态
+type Stat struct {
+	OpenCount int
+	IdleCount int
+	WaitCount int
+}
+
+// Config 连接池配置
 type Config struct {
 	MaxOpenCount  int
 	MaxIdleCount  int
 	RpcServerAddr string
 }
 
-var nowFunc = time.Now
-
-// Init 初始化
-func Init(ctx context.Context, config *Config) (conn *ConnPool) {
+// NewPool 创建连接吃
+func NewPool(config *Config) *ConnPool {
 	return &ConnPool{
+		logger:        log.New(os.Stdout, "[RPC] ", log.Lshortfile|log.Ldate|log.Ltime|log.Lmicroseconds),
 		connPool:      []int{},
 		openCount:     0,
 		waitCount:     0,
@@ -61,6 +73,8 @@ func Init(ctx context.Context, config *Config) (conn *ConnPool) {
 		rpcServerAddr: config.RpcServerAddr,
 	}
 }
+
+var nowFunc = time.Now
 
 // Achieve 获取连接
 func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err error) {
@@ -85,7 +99,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		}
 
 		delete(pool.availableConn, popReqKey)
-		log.Printf("Achieve connection[fromPool] successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		// pool.logger.Printf("Achieve connection[fromPool] successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 		pool.lock.Unlock()
 
 		return popPermission, nil
@@ -102,13 +116,13 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 
 		select {
 		case <-time.After(time.Second * time.Duration(3)):
-			log.Println("Achieve connection failed, cause: wait timeout")
+			pool.logger.Println("Achieve connection failed, cause: wait timeout")
 			return
 		case ret, ok := <-req:
 			if !ok {
 				return Permission{}, errors.New("get connection failed, cause: no available connection release")
 			}
-			log.Printf("Achieve connection[released] successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+			// pool.logger.Printf("Achieve connection[released] successfully, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 			return ret, nil
 		}
 	}
@@ -121,7 +135,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 	c, err := net.Dial("tcp", pool.rpcServerAddr)
 	if err != nil {
 		e := fmt.Sprintf("Failed to connect to server %s, err: %s\n", pool.rpcServerAddr, err)
-		log.Printf(e)
+		// pool.logger.Printf(e)
 		return Permission{}, errors.New(e)
 	}
 	client := NewClient(c)
@@ -131,7 +145,7 @@ func (pool *ConnPool) Achieve(ctx context.Context) (permission Permission, err e
 		CreateAt:      nowFunc(),
 		MaxLifeTime:   0,
 	}
-	log.Printf("Achieve connection[created], openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+	// pool.logger.Printf("Achieve connection[created], openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 	return permission, nil
 }
 
@@ -164,7 +178,7 @@ func (pool *ConnPool) Release(client *Client, ctx context.Context) (result bool,
 		req <- permission
 		delete(pool.waitQueue, reqKey)
 		pool.waitCount--
-		log.Printf("Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+		// pool.logger.Printf("Release connection to wait task, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 	} else {
 		// (2) 没有等待任务，将连接放入连接池
 		if pool.openCount > 0 {
@@ -178,11 +192,31 @@ func (pool *ConnPool) Release(client *Client, ctx context.Context) (result bool,
 					MaxLifeTime:   time.Second * 5,
 				}
 				pool.availableConn[nextConnIndex] = permission
-				log.Printf("Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
+				// pool.logger.Printf("Release connection to conn pool, openCount:%d, idleCount:%v\n", pool.openCount, len(pool.availableConn))
 			}
 		}
 	}
 
 	pool.lock.Unlock()
 	return
+}
+
+// Stat 获取连接池状态
+func (pool *ConnPool) Stat() Stat {
+	return Stat{
+		OpenCount: pool.openCount,
+		IdleCount: len(pool.availableConn),
+		WaitCount: pool.waitCount,
+	}
+}
+
+// Exec 执行函数，返回结果
+func (pool *ConnPool) Exec(ctx context.Context, handle func(client *Client)) error {
+	permission, err := pool.Achieve(ctx)
+	if err != nil {
+		return err
+	}
+	defer pool.Release(permission.RpcCli, ctx)
+	handle(permission.RpcCli)
+	return nil
 }
