@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Khighness/entry-task/pkg/log"
+	"github.com/Khighness/entry-task/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -63,7 +63,7 @@ type Config struct {
 // NewPool 创建连接吃
 func NewPool(config *Config) *ConnPool {
 	return &ConnPool{
-		logger:        log.NewLogger(logrus.DebugLevel, "", true),
+		logger:        logger.NewLogger(logrus.DebugLevel, "", true),
 		connPool:      []int{},
 		openCount:     0,
 		waitCount:     0,

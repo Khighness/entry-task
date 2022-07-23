@@ -6,7 +6,7 @@ import (
 	"net"
 	"reflect"
 
-	"github.com/Khighness/entry-task/pkg/log"
+	"github.com/Khighness/entry-task/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,7 +24,7 @@ type Server struct {
 // NewServer create a new server
 func NewServer(addr string) *Server {
 	return &Server{
-		logger:    log.NewLogger(logrus.WarnLevel, "", true),
+		logger:    logger.NewLogger(logrus.WarnLevel, "", true),
 		addr:      addr,                           // the net address of server
 		functions: make(map[string]reflect.Value), // key: the name of func , value: reflect Value of function
 	}
