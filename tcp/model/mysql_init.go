@@ -3,10 +3,12 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"time"
+
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/Khighness/entry-task/tcp/config"
 	"github.com/Khighness/entry-task/tcp/logging"
-	_ "github.com/go-sql-driver/mysql"
-	"time"
 )
 
 // @Author Chen Zikang

@@ -3,7 +3,7 @@ package service
 import (
 	"time"
 
-	"github.com/Khighness/entry-task/public"
+	"github.com/Khighness/entry-task/pb"
 	"github.com/Khighness/entry-task/tcp/cache"
 	"github.com/Khighness/entry-task/tcp/common"
 	"github.com/Khighness/entry-task/tcp/common/e"
@@ -32,39 +32,39 @@ func NewUserService(userMapper *mapper.UserMapper, userCache *cache.UserCache) *
 }
 
 // Register 用户注册
-func (s *UserService) Register(in *public.RegisterRequest) *public.RegisterResponse {
+func (s *UserService) Register(in pb.RegisterRequest) (pb.RegisterResponse, error) {
 	var status = e.SUCCESS
 	var err error
 
 	// 校验用户名和密码
 	if status = util.CheckUsername(in.Username); status != e.SUCCESS {
-		return &public.RegisterResponse{
+		return pb.RegisterResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 	if status = util.CheckPassword(in.Password); status != e.SUCCESS {
-		return &public.RegisterResponse{
+		return pb.RegisterResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 
 	// 检查用户名的唯一性
 	exist, err := s.userMapper.CheckUserUsernameExist(in.Username)
 	if err != nil {
 		status = e.ErrorOperateDatabase
-		return &public.RegisterResponse{
+		return pb.RegisterResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 	if exist {
 		status = e.ErrorUsernameAlreadyExist
-		return &public.RegisterResponse{
+		return pb.RegisterResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 
 	// 加密，计算hash
@@ -79,40 +79,40 @@ func (s *UserService) Register(in *public.RegisterRequest) *public.RegisterRespo
 	})
 	if err != nil {
 		status = e.ErrorOperateDatabase
-		return &public.RegisterResponse{
+		return pb.RegisterResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 
 	logging.Log.Infof("[user register] userId: %v, username：%s", id, in.Username)
-	return &public.RegisterResponse{
+	return pb.RegisterResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
-	}
+	}, nil
 }
 
 // Login 用户登录
-func (s *UserService) Login(in *public.LoginRequest) *public.LoginResponse {
+func (s *UserService) Login(in pb.LoginRequest) (pb.LoginResponse, error) {
 	var status = e.SUCCESS
 
 	// 校验用户名是否存在
 	dbUser, err := s.userMapper.QueryUserByUsername(in.Username)
 	if err != nil {
 		status = e.ErrorUsernameIncorrect
-		return &public.LoginResponse{
+		return pb.LoginResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 
 	// 验证密码
 	if !util.VerifyPassByMD5(in.Password, dbUser.Password) {
 		status = e.ErrorPasswordIncorrect
-		return &public.LoginResponse{
+		return pb.LoginResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 
 	// 生成token，并在redis中缓存用户信息
@@ -125,50 +125,50 @@ func (s *UserService) Login(in *public.LoginRequest) *public.LoginResponse {
 	})
 
 	logging.Log.Infof("[user login] userId: %d, username: %s", dbUser.Id, in.Username)
-	return &public.LoginResponse{
+	return pb.LoginResponse{
 		Code:  int32(status),
 		Msg:   e.GetMsg(status),
 		Token: token,
-		User: &public.User{
+		User: &pb.User{
 			Id:             dbUser.Id,
 			Username:       in.Username,
 			ProfilePicture: dbUser.ProfilePicture,
 		},
-	}
+	}, nil
 }
 
 // CheckToken 检查token
-func (s *UserService) CheckToken(in *public.CheckTokenRequest) *public.CheckTokenResponse {
+func (s *UserService) CheckToken(in pb.CheckTokenRequest) (pb.CheckTokenResponse, error) {
 	var status = e.SUCCESS
 	id, err := s.userCache.GetUserId(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
-		return &public.CheckTokenResponse{
+		return pb.CheckTokenResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 	logging.Log.Infof("[check token] token：%s，id：%d", in.Token, id)
-	return &public.CheckTokenResponse{
+	return pb.CheckTokenResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
-	}
+	}, nil
 }
 
 // GetProfile 获取信息
 // TODO 多节点，分布式锁
-func (s *UserService) GetProfile(in *public.GetProfileRequest) *public.GetProfileResponse {
+func (s *UserService) GetProfile(in pb.GetProfileRequest) (pb.GetProfileResponse, error) {
 	var status = e.SUCCESS
 
 	// 从缓存中获取用户信息
 	caUser, err := s.userCache.GetUserInfo(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
-		return &public.GetProfileResponse{
+		return pb.GetProfileResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-			User: nil,
-		}
+			User: pb.User{},
+		}, nil
 	}
 
 	// 用户信息失效，说明已更新
@@ -177,11 +177,11 @@ func (s *UserService) GetProfile(in *public.GetProfileRequest) *public.GetProfil
 		dbUser, err := s.userMapper.QueryUserById(caUser.Id)
 		if err != nil {
 			status = e.ErrorOperateDatabase
-			return &public.GetProfileResponse{
+			return pb.GetProfileResponse{
 				Code: int32(status),
 				Msg:  e.GetMsg(status),
-				User: nil,
-			}
+				User: pb.User{},
+			}, nil
 		}
 		caUser.Username = dbUser.Username
 		caUser.ProfilePicture = dbUser.ProfilePicture
@@ -189,39 +189,39 @@ func (s *UserService) GetProfile(in *public.GetProfileRequest) *public.GetProfil
 		s.userCache.SetUserField(in.Token, "profile_picture", caUser.ProfilePicture)
 	}
 
-	return &public.GetProfileResponse{
+	return pb.GetProfileResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
-		User: &public.User{
+		User: pb.User{
 			Id:             caUser.Id,
 			Username:       caUser.Username,
 			ProfilePicture: caUser.ProfilePicture,
 		},
-	}
+	}, nil
 }
 
 // UpdateProfile 更新信息
 // 更新字段，延时2S双删
-func (s *UserService) UpdateProfile(in *public.UpdateProfileRequest) *public.UpdateProfileResponse {
+func (s *UserService) UpdateProfile(in pb.UpdateProfileRequest) (pb.UpdateProfileResponse, error) {
 	var status = e.SUCCESS
 
 	// 从缓存中获取用户id
 	caUser, err := s.userCache.GetUserInfo(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
-		return &public.UpdateProfileResponse{
+		return pb.UpdateProfileResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 	// 从数据库查询最新信息
 	dbUser, err := s.userMapper.QueryUserById(caUser.Id)
 	if err != nil {
 		status = e.ErrorOperateDatabase
-		return &public.UpdateProfileResponse{
+		return pb.UpdateProfileResponse{
 			Code: int32(status),
 			Msg:  e.GetMsg(status),
-		}
+		}, nil
 	}
 	caUser.Username = dbUser.Username
 	caUser.ProfilePicture = dbUser.ProfilePicture
@@ -230,10 +230,10 @@ func (s *UserService) UpdateProfile(in *public.UpdateProfileRequest) *public.Upd
 	if in.Username != "" {
 		// 检查用户名合法性
 		if status = util.CheckUsername(in.Username); status != e.SUCCESS {
-			return &public.UpdateProfileResponse{
+			return pb.UpdateProfileResponse{
 				Code: int32(status),
 				Msg:  e.GetMsg(status),
-			}
+			}, nil
 		}
 		// 检查用户名是否变动
 		if in.Username != caUser.Username {
@@ -241,17 +241,17 @@ func (s *UserService) UpdateProfile(in *public.UpdateProfileRequest) *public.Upd
 			exist, err := s.userMapper.CheckUserUsernameExist(in.Username)
 			if err != nil {
 				status = e.ErrorOperateDatabase
-				return &public.UpdateProfileResponse{
+				return pb.UpdateProfileResponse{
 					Code: int32(status),
 					Msg:  e.GetMsg(status),
-				}
+				}, nil
 			}
 			if exist {
 				status = e.ErrorUsernameAlreadyExist
-				return &public.UpdateProfileResponse{
+				return pb.UpdateProfileResponse{
 					Code: int32(status),
 					Msg:  e.GetMsg(status),
-				}
+				}, nil
 			}
 
 			s.userCache.DelUserField(in.Token, "username")
@@ -264,10 +264,10 @@ func (s *UserService) UpdateProfile(in *public.UpdateProfileRequest) *public.Upd
 			err = s.userMapper.UpdateUserUsernameById(caUser.Id, in.Username)
 			if err != nil {
 				status = e.ErrorOperateDatabase
-				return &public.UpdateProfileResponse{
+				return pb.UpdateProfileResponse{
 					Code: int32(status),
 					Msg:  e.GetMsg(status),
-				}
+				}, nil
 			}
 			logging.Log.Infof("[user update] userId：%d，username：%s", caUser.Id, in.Username)
 		}
@@ -285,26 +285,26 @@ func (s *UserService) UpdateProfile(in *public.UpdateProfileRequest) *public.Upd
 		err = s.userMapper.UpdateUserProfilePictureById(caUser.Id, in.ProfilePicture)
 		if err != nil {
 			status = e.ErrorOperateDatabase
-			return &public.UpdateProfileResponse{
+			return pb.UpdateProfileResponse{
 				Code: int32(status),
 				Msg:  e.GetMsg(status),
-			}
+			}, nil
 		}
 		logging.Log.Infof("[user update] userId：%d，avatar：%s", caUser.Id, in.ProfilePicture)
 	}
 
-	return &public.UpdateProfileResponse{
+	return pb.UpdateProfileResponse{
 		Code: int32(status),
 		Msg:  e.GetMsg(status),
-	}
+	}, nil
 }
 
 // Logout 退出登录
-func (s *UserService) Logout(in *public.LogoutRequest) *public.LogoutResponse {
+func (s *UserService) Logout(in pb.LogoutRequest) (pb.LogoutResponse, error) {
 	logging.Log.Infof("[user logout] token：%s", in.Token)
 	s.userCache.DelUserInfo(in.Token)
-	return &public.LogoutResponse{
+	return pb.LogoutResponse{
 		Code: e.SUCCESS,
 		Msg:  e.GetMsg(e.SUCCESS),
-	}
+	}, nil
 }

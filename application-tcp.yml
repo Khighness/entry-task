@@ -5,10 +5,10 @@ server:
 mysql:
   host: 127.0.0.1
   port: 3306
-  user: czk
+  user: root
   pass: KANG1823
   name: entry_task
-  max-open: 3000
+  max-open: 5000
   max-idle: 1000
   max-life-time: 3600
   max-idle-time: 3600
@@ -17,8 +17,8 @@ redis:
   addr: 127.0.0.1:6379
   pass: KANG1823
   db: 0
-  max-conn: 3000
-  min-idle: 0
+  max-conn: 5000
+  min-idle: 1000
   max-retries: 3
   dial-timeout: 5
   idle-timeout: 1800

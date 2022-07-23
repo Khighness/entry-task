@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -49,7 +50,12 @@ type RedisConfig struct {
 
 var AppCfg *AppConfig
 
-func init() {
+var (
+	port = flag.Int("p", 20000, "Web service port")
+)
+
+// Load 导入配置和参数
+func Load() {
 	AppCfg = &AppConfig{}
 	applicationFile, err := ioutil.ReadFile("application-tcp.yml")
 	if err != nil {
@@ -60,4 +66,7 @@ func init() {
 		logging.Log.Fatal("Failed to read application configuration file")
 	}
 	logging.Log.Println("Succeed to load application configuration file")
+
+	flag.Parse()
+	AppCfg.Server.Port = *port
 }

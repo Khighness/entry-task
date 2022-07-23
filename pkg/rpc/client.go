@@ -20,6 +20,11 @@ func NewClient(conn net.Conn) *Client {
 	return &Client{conn}
 }
 
+// GetConn returns the connection to server
+func (c *Client) GetConn() net.Conn {
+	return c.conn
+}
+
 // Call transforms a function prototype into a function
 func (c *Client) Call(name string, fptr interface{}) {
 	container := reflect.ValueOf(fptr).Elem()

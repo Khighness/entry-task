@@ -1,4 +1,6 @@
-package public
+package pb
+
+import "encoding/gob"
 
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
@@ -48,7 +50,7 @@ type GetProfileRequest struct {
 type GetProfileResponse struct {
 	Code int32  `json:"code,omitempty"`
 	Msg  string `json:"msg,omitempty"`
-	User *User  `json:"user,omitempty"`
+	User User   `json:"user,omitempty"`
 }
 
 type UpdateProfileRequest struct {
@@ -69,4 +71,20 @@ type LogoutRequest struct {
 type LogoutResponse struct {
 	Code int32  `json:"code,omitempty"`
 	Msg  string `json:"msg,omitempty"`
+}
+
+func init() {
+	gob.Register(User{})
+	gob.Register(RegisterRequest{})
+	gob.Register(RegisterResponse{})
+	gob.Register(LoginRequest{})
+	gob.Register(LoginResponse{})
+	gob.Register(CheckTokenRequest{})
+	gob.Register(CheckTokenResponse{})
+	gob.Register(GetProfileRequest{})
+	gob.Register(GetProfileResponse{})
+	gob.Register(UpdateProfileRequest{})
+	gob.Register(UpdateProfileResponse{})
+	gob.Register(LogoutRequest{})
+	gob.Register(LogoutResponse{})
 }

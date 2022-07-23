@@ -1,6 +1,8 @@
 package config
 
 import (
+	"flag"
+	"fmt"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -24,15 +26,22 @@ type ServerConfig struct {
 
 type RpcConfig struct {
 	Addr        string `yaml:"addr"`
+	Initial     int    `yaml:"initial"`
 	MaxOpen     int    `yaml:"max-open"`
 	MaxIdle     int    `yaml:"max-idle"`
-	MaxLiftTime int    `yaml:"max-lift-time"`
+	MaxLifeTime int    `yaml:"max-life-time"`
 	MaxIdleTime int    `yaml:"max-idle-time"`
 }
 
 var AppCfg *AppConfig
 
-func init() {
+var (
+	port    = flag.Int("p", 10000, "Web service port")
+	rpcPort = flag.Int("rp", 20000, "Rpc service port")
+)
+
+// Load 导入配置和参数
+func Load() {
 	AppCfg = &AppConfig{}
 	applicationFile, err := ioutil.ReadFile("application-web.yml")
 	if err != nil {
@@ -43,4 +52,8 @@ func init() {
 		logging.Log.Fatal("Failed to read application configuration file")
 	}
 	logging.Log.Println("Succeed to load application configuration file")
+
+	flag.Parse()
+	AppCfg.Server.Port = *port
+	AppCfg.Rpc.Addr = fmt.Sprintf("0.0.0.0:%v", *rpcPort)
 }

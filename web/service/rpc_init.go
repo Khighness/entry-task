@@ -1,4 +1,4 @@
-package grpc
+package service
 
 import (
 	"time"
@@ -8,17 +8,19 @@ import (
 
 // @Author Chen Zikang
 // @Email  zikang.chen@shopee.com
-// @Since  2022-03-09
+// @Since  2022-07-22
 
-var GP *GrpcPool
+var Pool *RpcPool
 
 func InitPool() {
 	rpcCfg := config.AppCfg.Rpc
-	connector := GrpcConnector{GrpcServerAddr: rpcCfg.Addr}
-	GP = NewGrpcPool(connector, &GrpcPoolConfig{
+	connector := NewRpcConnector(rpcCfg.Addr)
+	poolCfg := &RpcPoolConfig{
+		InitialCount: rpcCfg.Initial,
 		MaxOpenCount: rpcCfg.MaxOpen,
 		MaxIdleCount: rpcCfg.MaxIdle,
-		MaxLifeTime:  time.Duration(rpcCfg.MaxLiftTime) * time.Second,
+		MaxLifeTime:  time.Duration(rpcCfg.MaxLifeTime) * time.Second,
 		MaxIdleTime:  time.Duration(rpcCfg.MaxIdleTime) * time.Second,
-	})
+	}
+	Pool = NewRpcPool(connector, poolCfg)
 }

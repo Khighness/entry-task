@@ -16,7 +16,7 @@
 ### Feature
 
 - Native http API based on Go lib
-- Prefect connection pool for GRPC
+- Prefect connection pool for RPC
 - Beautiful front page built from VUE
 - Elegant code style and exhaustive comments
 
@@ -26,14 +26,14 @@
 
 ```
 entry-task
-    ├─bin              shell scripts    
-    ├─cmd              start files          
-    ├─doc              all documents
-    ├─front            vue frontend
-    ├─pb               grpc proto
-    ├─rpc              rpc implement
-    ├─tcp              tcp server
-    └─web              web server
+    ├─bin              scripts    
+    ├─cmd              startup          
+    ├─doc              document
+    ├─front            frontend
+    ├─pb               protocol
+    ├─pkg              rpc and log
+    ├─tcp              tcp-server
+    └─web              web-server
 ```
 
 
@@ -72,6 +72,12 @@ Then, you can start the services by the following command：
 ```shell
 ./bin/start.sh
 ```
+
+
+
+### Extension
+
+The branch [master](https://github.com/Khighness/entry-task/tree/master) use the grpc. If you need the custom rpc, please switch to branch [develop](https://github.com/Khighness/entry-task/tree/develop). 
 
 
 

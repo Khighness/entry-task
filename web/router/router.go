@@ -15,7 +15,7 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-// Start 启动web server
+// Start 启动WEB server
 func Start() {
 	userController := controller.UserController{}
 	http.HandleFunc(view.PingUrl, middleware.CorsMiddleWare(middleware.TimeMiddleWare(userController.Ping)))

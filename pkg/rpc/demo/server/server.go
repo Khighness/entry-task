@@ -5,8 +5,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/Khighness/entry-task/rpc"
-	"github.com/Khighness/entry-task/rpc/demo/public"
+	"github.com/Khighness/entry-task/pkg/rpc"
+	"github.com/Khighness/entry-task/pkg/rpc/demo/public"
 )
 
 // @Author Chen Zikang

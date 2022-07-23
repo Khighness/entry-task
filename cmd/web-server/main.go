@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/Khighness/entry-task/web/grpc"
+	"github.com/Khighness/entry-task/web/config"
 	"github.com/Khighness/entry-task/web/router"
+	"github.com/Khighness/entry-task/web/service"
 )
 
 // @Author Chen Zikang
@@ -10,6 +11,7 @@ import (
 // @Since  2022-02-16
 
 func main() {
-	grpc.InitPool()
+	config.Load()
+	service.InitPool()
 	router.Start()
 }

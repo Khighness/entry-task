@@ -9,7 +9,7 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-21
 
-// Data presents the public transported between server and client
+// Data presents the pb transported between server and client
 type Data struct {
 	Name string        // service name
 	Args []interface{} // request's or response's body

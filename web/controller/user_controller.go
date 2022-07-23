@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,10 +11,11 @@ import (
 	"time"
 
 	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/pkg/rpc"
 	"github.com/Khighness/entry-task/web/common"
 	"github.com/Khighness/entry-task/web/config"
-	"github.com/Khighness/entry-task/web/grpc"
 	"github.com/Khighness/entry-task/web/logging"
+	"github.com/Khighness/entry-task/web/service"
 	"github.com/Khighness/entry-task/web/util"
 	"github.com/Khighness/entry-task/web/view"
 )
@@ -45,17 +45,17 @@ func (userController *UserController) Register(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	register := func(cli pb.UserServiceClient) (interface{}, error) {
-		return cli.Register(context.Background(), &pb.RegisterRequest{Username: registerReq.Username, Password: registerReq.Password})
+	var rpcRegister func(request pb.RegisterRequest) (pb.RegisterResponse, error)
+	register := func(client *rpc.Client) {
+		client.Call(pb.FuncRegister, &rpcRegister)
 	}
-	rpcRsp, err := grpc.GP.Exec(register)
-	if err != nil {
-		view.HandleErrorRpcRequest(w)
+	if err = service.Pool.Exec(register); err != nil {
+		view.HandleErrorServerBusy(w)
 		return
 	}
-	rsp, _ := rpcRsp.(*pb.RegisterResponse)
-	if rsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+	rpcRsp, _ := rpcRegister(pb.RegisterRequest{Username: registerReq.Username, Password: registerReq.Password})
+	if rpcRsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, nil)
@@ -74,27 +74,25 @@ func (userController *UserController) Login(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	//
-
-	login := func(cli pb.UserServiceClient) (interface{}, error) {
-		return cli.Login(context.Background(), &pb.LoginRequest{Username: loginReq.Username, Password: loginReq.Password})
+	var rpcLogin func(request pb.LoginRequest) (pb.LoginResponse, error)
+	login := func(client *rpc.Client) {
+		client.Call(pb.FuncLogin, &rpcLogin)
 	}
-	rpcRsp, err := grpc.GP.Exec(login)
-	if err != nil {
-		view.HandleErrorRpcRequest(w)
+	if err = service.Pool.Exec(login); err != nil {
+		view.HandleErrorServerBusy(w)
 		return
 	}
-	rsp, _ := rpcRsp.(*pb.LoginResponse)
-	if rsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+	rpcRsp, _ := rpcLogin(pb.LoginRequest{Username: loginReq.Username, Password: loginReq.Password})
+	if rpcRsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, common.LoginResponse{
-		Token: rsp.Token,
+		Token: rpcRsp.Token,
 		User: common.UserInfo{
-			Id:             rsp.User.Id,
-			Username:       rsp.User.Username,
-			ProfilePicture: rsp.User.ProfilePicture,
+			Id:             rpcRsp.User.Id,
+			Username:       rpcRsp.User.Username,
+			ProfilePicture: rpcRsp.User.ProfilePicture,
 		},
 	})
 }
@@ -106,23 +104,23 @@ func (userController *UserController) GetProfile(w http.ResponseWriter, r *http.
 		return
 	}
 
-	getProfile := func(cli pb.UserServiceClient) (interface{}, error) {
-		return cli.GetProfile(context.Background(), &pb.GetProfileRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+	var rpcGetProfile func(request pb.GetProfileRequest) (pb.GetProfileResponse, error)
+	getProfile := func(client *rpc.Client) {
+		client.Call(pb.FuncGetProfile, &rpcGetProfile)
 	}
-	rpcRsp, err := grpc.GP.Exec(getProfile)
-	if err != nil {
-		view.HandleErrorRpcRequest(w)
+	if err := service.Pool.Exec(getProfile); err != nil {
+		view.HandleErrorServerBusy(w)
 		return
 	}
-	rsp, _ := rpcRsp.(*pb.GetProfileResponse)
-	if rsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+	rpcRsp, _ := rpcGetProfile(pb.GetProfileRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+	if rpcRsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, common.UserInfo{
-		Id:             rsp.User.Id,
-		Username:       rsp.User.Username,
-		ProfilePicture: rsp.User.ProfilePicture,
+		Id:             rpcRsp.User.Id,
+		Username:       rpcRsp.User.Username,
+		ProfilePicture: rpcRsp.User.ProfilePicture,
 	})
 }
 
@@ -132,27 +130,27 @@ func (userController *UserController) UpdateProfile(w http.ResponseWriter, r *ht
 		view.HandleMethodError(w, "Allowed Method: [PUT]")
 		return
 	}
-	var updateProfileRequest common.UpdateProfileRequest
-	err := json.NewDecoder(r.Body).Decode(&updateProfileRequest)
+	var updateProfileReq common.UpdateProfileRequest
+	err := json.NewDecoder(r.Body).Decode(&updateProfileReq)
 	if err != nil {
 		view.HandleRequestError(w, "Body should be json for registering data")
 		return
 	}
 
-	updateProfile := func(cli pb.UserServiceClient) (interface{}, error) {
-		return cli.UpdateProfile(context.Background(), &pb.UpdateProfileRequest{
-			Token:    r.Header.Get(common.HeaderTokenKey),
-			Username: updateProfileRequest.Username,
-		})
+	var rpcUpdateProfile func(request pb.UpdateProfileRequest) (pb.UpdateProfileResponse, error)
+	updateProfile := func(client *rpc.Client) {
+		client.Call(pb.FuncUpdateProfile, &rpcUpdateProfile)
 	}
-	rpcRsp, err := grpc.GP.Exec(updateProfile)
-	if err != nil {
-		view.HandleErrorRpcRequest(w)
+	if err = service.Pool.Exec(updateProfile); err != nil {
+		view.HandleErrorServerBusy(w)
 		return
 	}
-	rsp, _ := rpcRsp.(*pb.UpdateProfileResponse)
-	if rsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+	rpcRsp, _ := rpcUpdateProfile(pb.UpdateProfileRequest{
+		Token:    r.Header.Get(common.HeaderTokenKey),
+		Username: updateProfileReq.Username,
+	})
+	if rpcRsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, nil)
@@ -215,20 +213,20 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 		return
 	}
 
-	updateProfile := func(cli pb.UserServiceClient) (interface{}, error) {
-		return cli.UpdateProfile(context.Background(), &pb.UpdateProfileRequest{
-			Token:          r.Header.Get(common.HeaderTokenKey),
-			ProfilePicture: profilePicture,
-		})
+	var rpcUpdateProfile func(request pb.UpdateProfileRequest) (pb.UpdateProfileResponse, error)
+	updateProfile := func(client *rpc.Client) {
+		client.Call(pb.FuncUpdateProfile, &rpcUpdateProfile)
 	}
-	rpcRsp, err := grpc.GP.Exec(updateProfile)
-	if err != nil {
-		view.HandleErrorRpcRequest(w)
+	if err = service.Pool.Exec(updateProfile); err != nil {
+		view.HandleErrorServerBusy(w)
 		return
 	}
-	rsp, _ := rpcRsp.(*pb.UpdateProfileResponse)
-	if rsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+	rpcRsp, _ := rpcUpdateProfile(pb.UpdateProfileRequest{
+		Token:          r.Header.Get(common.HeaderTokenKey),
+		ProfilePicture: profilePicture,
+	})
+	if rpcRsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, nil)
@@ -241,17 +239,17 @@ func (userController *UserController) Logout(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	logout := func(cli pb.UserServiceClient) (interface{}, error) {
-		return cli.Logout(context.Background(), &pb.LogoutRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+	var rpcLogout func(request pb.LogoutRequest) (pb.LogoutResponse, error)
+	logout := func(client *rpc.Client) {
+		client.Call(pb.FuncLogout, &rpcLogout)
 	}
-	rpcRsp, err := grpc.GP.Exec(logout)
-	if err != nil {
-		view.HandleErrorRpcRequest(w)
+	if err := service.Pool.Exec(logout); err != nil {
+		view.HandleErrorServerBusy(w)
 		return
 	}
-	rsp, _ := rpcRsp.(*pb.LogoutResponse)
-	if rsp.Code != common.RpcSuccessCode {
-		view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+	rpcRsp, _ := rpcLogout(pb.LogoutRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+	if rpcRsp.Code != common.RpcSuccessCode {
+		view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 		return
 	}
 	view.HandleBizSuccess(w, nil)

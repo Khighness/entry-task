@@ -14,6 +14,7 @@ import (
 
 var fileTypeMap sync.Map
 
+// see https://www.garykessler.net/library/file_sigs.html
 func init() {
 	fileTypeMap.Store("ffd8ff", "jpg")         //JPEG (jpg)
 	fileTypeMap.Store("89504e47", "png")       //PNG (png)

@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"time"
 
 	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/pkg/rpc"
 	"github.com/Khighness/entry-task/web/common"
-	"github.com/Khighness/entry-task/web/grpc"
 	"github.com/Khighness/entry-task/web/logging"
+	"github.com/Khighness/entry-task/web/service"
 	"github.com/Khighness/entry-task/web/view"
 )
 
@@ -67,19 +67,23 @@ func TokenMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		logging.Log.Debugf("[verify token] token: %s", token)
 
 		// 校验token是否合法
-		checkToken := func(cli pb.UserServiceClient) (interface{}, error) {
-			return cli.CheckToken(context.Background(), &pb.CheckTokenRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+		var rpcCheckToken func(request pb.CheckTokenRequest) (pb.CheckTokenResponse, error)
+		checkToken := func(client *rpc.Client) {
+			client.Call(pb.FuncCheckToken, &rpcCheckToken)
 		}
-		rpcRsp, err := grpc.GP.Exec(checkToken)
-		if err != nil {
-			view.HandleErrorRpcRequest(w)
+		if err := service.Pool.Exec(checkToken); err != nil {
+			view.HandleErrorServerBusy(w)
 			return
 		}
-		rsp, _ := rpcRsp.(*pb.CheckTokenResponse)
+		rpcRsp, _ := rpcCheckToken(pb.CheckTokenRequest{Token: r.Header.Get(common.HeaderTokenKey)})
+		if rpcRsp.Code != common.RpcSuccessCode {
+			view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
+			return
+		}
 
 		// 认证失败
-		if rsp.Code != common.RpcSuccessCode {
-			view.HandleErrorRpcResponse(w, rsp.Code, rsp.Msg)
+		if rpcRsp.Code != common.RpcSuccessCode {
+			view.HandleErrorRpcResponse(w, rpcRsp.Code, rpcRsp.Msg)
 			return
 		}
 

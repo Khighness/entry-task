@@ -2,9 +2,10 @@ package server
 
 import (
 	"fmt"
+	"github.com/Khighness/entry-task/tcp/model"
 
-	"github.com/Khighness/entry-task/public"
-	"github.com/Khighness/entry-task/rpc"
+	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/pkg/rpc"
 	"github.com/Khighness/entry-task/tcp/cache"
 	"github.com/Khighness/entry-task/tcp/config"
 	"github.com/Khighness/entry-task/tcp/logging"
@@ -16,7 +17,7 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-17
 
-// Start 启动tcp server
+// Start 启动TCP server
 func Start() {
 	// 创建RPC Server
 	serverCfg := config.AppCfg.Server
@@ -24,15 +25,17 @@ func Start() {
 	server := rpc.NewServer(serverAddr)
 
 	// 注册Function
-	userService := service.NewUserService(&mapper.UserMapper{}, &cache.UserCache{})
-	server.Register(public.FuncRegister, userService.Register)
-	server.Register(public.FuncLogin, userService.Login)
-	server.Register(public.FuncCheckToken, userService.CheckToken)
-	server.Register(public.FuncGetProfile, userService.GetProfile)
-	server.Register(public.FuncUpdateProfile, userService.UpdateProfile)
-	server.Register(public.FuncLogout, userService.Logout)
+	userCache := cache.NewUserCache(cache.RedisClient)
+	userMapper := mapper.NewUserMapper(model.DB)
+	userService := service.NewUserService(userMapper, userCache)
+	server.Register(pb.FuncRegister, userService.Register)
+	server.Register(pb.FuncLogin, userService.Login)
+	server.Register(pb.FuncCheckToken, userService.CheckToken)
+	server.Register(pb.FuncGetProfile, userService.GetProfile)
+	server.Register(pb.FuncUpdateProfile, userService.UpdateProfile)
+	server.Register(pb.FuncLogout, userService.Logout)
 
 	// 启动RPC Server
-	logging.Log.Printf("GRPC tcp server is serving at [%s]", serverAddr)
+	logging.Log.Printf("RPC tcp server is serving at [%s]", serverAddr)
 	server.Run()
 }

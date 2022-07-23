@@ -4,8 +4,8 @@ server:
 
 rpc:
   addr: 0.0.0.0:20000
+  initial: 1000
   max-open: 10000
   max-idle: 5000
   max-life-time: 1800
   max-idle-time: 600
-
