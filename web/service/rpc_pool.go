@@ -327,9 +327,7 @@ func (rp *RpcPool) connectionCleaner(d time.Duration) {
 	t := time.NewTimer(d)
 
 	for {
-		select {
-		case <-t.C:
-		}
+		<-t.C
 
 		rp.mu.Lock()
 		d = rp.shortestIdleTimeLocked()

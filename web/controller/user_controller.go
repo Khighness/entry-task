@@ -163,7 +163,7 @@ func (userController *UserController) ShowAvatar(w http.ResponseWriter, r *http.
 		return
 	}
 
-	profilePicture := strings.TrimLeft(r.URL.Path, view.ShowAvatarUrl)
+	profilePicture := r.URL.Path[len(view.ShowAvatarUrl):]
 	profilePicturePath := common.AvatarStoragePath + profilePicture
 	_, err := os.Stat(profilePicturePath)
 	if os.IsNotExist(err) {
@@ -205,9 +205,9 @@ func (userController *UserController) UploadAvatar(w http.ResponseWriter, r *htt
 	serverCfg := config.AppCfg.Server
 	serverAddr := fmt.Sprintf("%s:%d", serverCfg.Host, serverCfg.Port)
 	profilePicture := fmt.Sprintf("http://%s%s%s", serverAddr, view.ShowAvatarUrl, avatarName)
-	createFile, err := os.OpenFile(common.AvatarStoragePath+avatarName, os.O_WRONLY|os.O_CREATE, 0766)
+	createFile, _ := os.OpenFile(common.AvatarStoragePath+avatarName, os.O_WRONLY|os.O_CREATE, 0766)
 	defer createFile.Close()
-	_, err = createFile.Write(fileStream)
+	_, err := createFile.Write(fileStream)
 	if err != nil {
 		view.HandleBizError(w, "Upload profile picture failed")
 		return

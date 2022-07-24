@@ -217,7 +217,12 @@ func (pool *ConnPool) Exec(ctx context.Context, handle func(client *Client)) err
 	if err != nil {
 		return err
 	}
-	defer pool.Release(permission.RpcCli, ctx)
+	defer func(pool *ConnPool, client *Client, ctx context.Context) {
+		_, err := pool.Release(client, ctx)
+		if err != nil {
+			panic(err)
+		}
+	}(pool, permission.RpcCli, ctx)
 	handle(permission.RpcCli)
 	return nil
 }

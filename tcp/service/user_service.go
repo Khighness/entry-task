@@ -33,7 +33,7 @@ func NewUserService(userMapper *mapper.UserMapper, userCache *cache.UserCache) *
 
 // Register 用户注册
 func (s *UserService) Register(in pb.RegisterRequest) (pb.RegisterResponse, error) {
-	var status = e.SUCCESS
+	var status int
 	var err error
 
 	// 校验用户名和密码
