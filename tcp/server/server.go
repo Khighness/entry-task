@@ -11,8 +11,11 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/Khighness/entry-task/pb"
+	"github.com/Khighness/entry-task/tcp/cache"
 	"github.com/Khighness/entry-task/tcp/config"
 	"github.com/Khighness/entry-task/tcp/logging"
+	"github.com/Khighness/entry-task/tcp/mapper"
+	"github.com/Khighness/entry-task/tcp/model"
 	"github.com/Khighness/entry-task/tcp/service"
 )
 
@@ -41,7 +44,11 @@ func Start() {
 		Timeout:               1 * time.Second,  // 如果ping请求1s内未恢复，则认为连接断开
 	}
 	s := grpc.NewServer(grpc.KeepaliveEnforcementPolicy(enforcementPolicy), grpc.KeepaliveParams(serverParameters))
-	pb.RegisterUserServiceServer(s, &service.Server{})
+
+	userMapper := mapper.NewUserMapper(model.DB)
+	userCache := cache.NewUserCache(cache.RedisClient)
+	userService := service.NewUserService(userMapper, userCache)
+	pb.RegisterUserServiceServer(s, userService)
 	reflection.Register(s)
 	logging.Log.Printf("GRPC tcp server is serving at [%s]", serverAddr)
 

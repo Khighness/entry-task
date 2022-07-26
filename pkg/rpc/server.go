@@ -3,9 +3,11 @@ package rpc
 import (
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"reflect"
+
+	"github.com/Khighness/entry-task/pkg/logger"
+	"github.com/sirupsen/logrus"
 )
 
 // @Author Chen Zikang
@@ -14,6 +16,7 @@ import (
 
 // Server struct
 type Server struct {
+	logger    *logrus.Logger
 	addr      string
 	functions map[string]reflect.Value
 }
@@ -21,6 +24,7 @@ type Server struct {
 // NewServer create a new server
 func NewServer(addr string) *Server {
 	return &Server{
+		logger:    logger.NewLogger(logrus.WarnLevel, "", true),
 		addr:      addr,                           // the net address of server
 		functions: make(map[string]reflect.Value), // key: the name of func , value: reflect Value of function
 	}
@@ -30,17 +34,17 @@ func NewServer(addr string) *Server {
 func (s *Server) Run() {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		log.Printf("Listen at %s err: %v \n", s.addr, err)
+		s.logger.Infof("Listen at %s err: %v ", s.addr, err)
 		return
 	}
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Printf("Accept client err: %v\n", err)
+			s.logger.Errorf("Accept client err: %v", err)
 			continue
 		} else {
-			log.Printf("Accept client %s\n", conn.RemoteAddr())
+			s.logger.Infof("Accept client: %s", conn.RemoteAddr())
 		}
 
 		go func() {
@@ -50,7 +54,7 @@ func (s *Server) Run() {
 				req, err := srvTransport.Receive()
 				if err != nil {
 					if err != io.EOF {
-						log.Printf("Read request err: %v\n", err)
+						s.logger.Infof("Read request err: %v", err)
 					}
 					return
 				}
@@ -59,13 +63,13 @@ func (s *Server) Run() {
 				// if function requested does not exist
 				if !ok {
 					e := fmt.Sprintf("Func %s does not exist", req.Name)
-					log.Printf(e)
+					s.logger.Errorf(e)
 					if err = srvTransport.Send(Data{Name: req.Name, Err: e}); err != nil {
-						log.Printf("Transport write err: %v\n", err)
+						s.logger.Printf("Transport write err: %v", err)
 					}
 					continue
 				}
-				log.Printf("Func %s is called\n", req.Name)
+				s.logger.Debugf("Call func: %s", req.Name)
 
 				// un package function arguments
 				inArgs := make([]reflect.Value, len(req.Args))
@@ -89,7 +93,7 @@ func (s *Server) Run() {
 				// send response to client
 				err = srvTransport.Send(Data{Name: req.Name, Args: outArgs, Err: e})
 				if err != nil {
-					log.Printf("Transport write err: %v\n", err)
+					s.logger.Errorf("Transport write err: %v", err)
 				}
 			}
 		}()
@@ -102,4 +106,5 @@ func (s *Server) Register(name string, f interface{}) {
 		return
 	}
 	s.functions[name] = reflect.ValueOf(f)
+	s.logger.Debugf("Register function: %v", name)
 }

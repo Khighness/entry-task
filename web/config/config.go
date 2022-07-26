@@ -32,6 +32,7 @@ type RpcConfig struct {
 
 var AppCfg *AppConfig
 
+// Load 导入配置
 func Load() {
 	AppCfg = &AppConfig{}
 	applicationFile, err := ioutil.ReadFile("application-web.yml")

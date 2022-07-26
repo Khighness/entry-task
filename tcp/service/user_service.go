@@ -21,21 +21,22 @@ import (
 // TODO 对表单输入过滤
 // TODO 防止XSRF攻击
 
-// Server TCP服务器
-type Server struct{}
-
-var (
+// UserService 用户业务
+type UserService struct {
 	userMapper *mapper.UserMapper
 	userCache  *cache.UserCache
-)
+}
 
-func init() {
-	userMapper = &mapper.UserMapper{}
-	userCache = &cache.UserCache{}
+// NewUserService 创建用户业务操作
+func NewUserService(userMapper *mapper.UserMapper, userCache *cache.UserCache) *UserService {
+	return &UserService{
+		userMapper: userMapper,
+		userCache:  userCache,
+	}
 }
 
 // Register 用户注册
-func (s *Server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
+func (s *UserService) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	var status = e.SUCCESS
 	var err error
 
@@ -54,7 +55,7 @@ func (s *Server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 	}
 
 	// 检查用户名的唯一性
-	exist, err := userMapper.CheckUserUsernameExist(in.Username)
+	exist, err := s.userMapper.CheckUserUsernameExist(in.Username)
 	if err != nil {
 		status = e.ErrorOperateDatabase
 		return &pb.RegisterResponse{
@@ -75,7 +76,7 @@ func (s *Server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 	hashedPassword, _ = util.EncryptPassByMd5(in.Password)
 
 	// 保存到数据库
-	id, err := userMapper.SaveUser(&model.User{
+	id, err := s.userMapper.SaveUser(&model.User{
 		Username:       in.Username,
 		Password:       hashedPassword,
 		ProfilePicture: common.DefaultProfilePicture,
@@ -96,11 +97,11 @@ func (s *Server) Register(ctx context.Context, in *pb.RegisterRequest) (*pb.Regi
 }
 
 // Login 用户登录
-func (s *Server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
+func (s *UserService) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginResponse, error) {
 	var status = e.SUCCESS
 
 	// 校验用户名是否存在
-	dbUser, err := userMapper.QueryUserByUsername(in.Username)
+	dbUser, err := s.userMapper.QueryUserByUsername(in.Username)
 	if err != nil {
 		status = e.ErrorUsernameIncorrect
 		return &pb.LoginResponse{
@@ -120,7 +121,7 @@ func (s *Server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginRespo
 
 	// 生成token，并在redis中缓存用户信息
 	token := util.GenerateToken()
-	go userCache.SetUserInfo(token, &model.User{
+	go s.userCache.SetUserInfo(token, &model.User{
 		Id:             dbUser.Id,
 		Username:       in.Username,
 		Password:       dbUser.Password,
@@ -141,9 +142,9 @@ func (s *Server) Login(ctx context.Context, in *pb.LoginRequest) (*pb.LoginRespo
 }
 
 // CheckToken 检查token
-func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
+func (s *UserService) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.CheckTokenResponse, error) {
 	var status = e.SUCCESS
-	id, err := userCache.GetUserId(in.Token)
+	id, err := s.userCache.GetUserId(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
 		return &pb.CheckTokenResponse{
@@ -160,11 +161,11 @@ func (s *Server) CheckToken(ctx context.Context, in *pb.CheckTokenRequest) (*pb.
 
 // GetProfile 获取信息
 // TODO 多节点，分布式锁
-func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
+func (s *UserService) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.GetProfileResponse, error) {
 	var status = e.SUCCESS
 
 	// 从缓存中获取用户信息
-	caUser, err := userCache.GetUserInfo(in.Token)
+	caUser, err := s.userCache.GetUserInfo(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
 		return &pb.GetProfileResponse{
@@ -177,7 +178,7 @@ func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 	// 用户信息失效，说明已更新
 	// 从数据库获取，添加到缓存
 	if caUser.Username == "" || caUser.ProfilePicture == "" {
-		dbUser, err := userMapper.QueryUserById(caUser.Id)
+		dbUser, err := s.userMapper.QueryUserById(caUser.Id)
 		if err != nil {
 			status = e.ErrorOperateDatabase
 			return &pb.GetProfileResponse{
@@ -188,8 +189,8 @@ func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 		}
 		caUser.Username = dbUser.Username
 		caUser.ProfilePicture = dbUser.ProfilePicture
-		userCache.SetUserField(in.Token, "username", caUser.Username)
-		userCache.SetUserField(in.Token, "profile_picture", caUser.ProfilePicture)
+		s.userCache.SetUserField(in.Token, "username", caUser.Username)
+		s.userCache.SetUserField(in.Token, "profile_picture", caUser.ProfilePicture)
 	}
 
 	return &pb.GetProfileResponse{
@@ -205,11 +206,11 @@ func (s *Server) GetProfile(ctx context.Context, in *pb.GetProfileRequest) (*pb.
 
 // UpdateProfile 更新信息
 // 更新字段，延时2S双删
-func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest) (*pb.UpdateProfileResponse, error) {
+func (s *UserService) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest) (*pb.UpdateProfileResponse, error) {
 	var status = e.SUCCESS
 
 	// 从缓存中获取用户id
-	caUser, err := userCache.GetUserInfo(in.Token)
+	caUser, err := s.userCache.GetUserInfo(in.Token)
 	if err != nil {
 		status = e.ErrorTokenExpired
 		return &pb.UpdateProfileResponse{
@@ -218,7 +219,7 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 		}, nil
 	}
 	// 从数据库查询最新信息
-	dbUser, err := userMapper.QueryUserById(caUser.Id)
+	dbUser, err := s.userMapper.QueryUserById(caUser.Id)
 	if err != nil {
 		status = e.ErrorOperateDatabase
 		return &pb.UpdateProfileResponse{
@@ -241,7 +242,7 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 		// 检查用户名是否变动
 		if in.Username != caUser.Username {
 			// 检查是否有其他人已使用
-			exist, err := userMapper.CheckUserUsernameExist(in.Username)
+			exist, err := s.userMapper.CheckUserUsernameExist(in.Username)
 			if err != nil {
 				status = e.ErrorOperateDatabase
 				return &pb.UpdateProfileResponse{
@@ -257,14 +258,14 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 				}, nil
 			}
 
-			userCache.DelUserField(in.Token, "username")
+			s.userCache.DelUserField(in.Token, "username")
 			defer func() {
 				go func() {
 					time.Sleep(2 * time.Second)
-					userCache.DelUserField(in.Token, "username")
+					s.userCache.DelUserField(in.Token, "username")
 				}()
 			}()
-			err = userMapper.UpdateUserUsernameById(caUser.Id, in.Username)
+			err = s.userMapper.UpdateUserUsernameById(caUser.Id, in.Username)
 			if err != nil {
 				status = e.ErrorOperateDatabase
 				return &pb.UpdateProfileResponse{
@@ -278,14 +279,14 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 
 	// 用户头像不为空，说明已更新
 	if in.ProfilePicture != "" {
-		userCache.DelUserField(in.Token, "username")
+		s.userCache.DelUserField(in.Token, "username")
 		defer func() {
 			go func() {
 				time.Sleep(2 * time.Second)
-				userCache.DelUserField(in.Token, "profile_picture")
+				s.userCache.DelUserField(in.Token, "profile_picture")
 			}()
 		}()
-		err = userMapper.UpdateUserProfilePictureById(caUser.Id, in.ProfilePicture)
+		err = s.userMapper.UpdateUserProfilePictureById(caUser.Id, in.ProfilePicture)
 		if err != nil {
 			status = e.ErrorOperateDatabase
 			return &pb.UpdateProfileResponse{
@@ -303,9 +304,9 @@ func (s *Server) UpdateProfile(ctx context.Context, in *pb.UpdateProfileRequest)
 }
 
 // Logout 退出登录
-func (s *Server) Logout(ctx context.Context, in *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+func (s *UserService) Logout(ctx context.Context, in *pb.LogoutRequest) (*pb.LogoutResponse, error) {
 	logging.Log.Infof("[user logout] token：%s", in.Token)
-	userCache.DelUserInfo(in.Token)
+	s.userCache.DelUserInfo(in.Token)
 	return &pb.LogoutResponse{
 		Code: e.SUCCESS,
 		Msg:  e.GetMsg(e.SUCCESS),

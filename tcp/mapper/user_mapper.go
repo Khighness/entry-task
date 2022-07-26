@@ -1,6 +1,7 @@
 package mapper
 
 import (
+	"database/sql"
 	"github.com/Khighness/entry-task/tcp/model"
 )
 
@@ -10,11 +11,17 @@ import (
 
 // UserMapper 用户数据库操作
 type UserMapper struct {
+	db *sql.DB
+}
+
+// NewUserMapper 创建 UserMapper
+func NewUserMapper(db *sql.DB) *UserMapper {
+	return &UserMapper{db: db}
 }
 
 // SaveUser 保存用户信息
 func (userMapper *UserMapper) SaveUser(user *model.User) (int64, error) {
-	result, err := model.DB.Exec("INSERT INTO user(`username`, `password`, `profile_picture`) values(?, ?, ?)", user.Username, user.Password, user.ProfilePicture)
+	result, err := userMapper.db.Exec("INSERT INTO user(`username`, `password`, `profile_picture`) values(?, ?, ?)", user.Username, user.Password, user.ProfilePicture)
 	if err != nil {
 		return 0, err
 	}
@@ -24,13 +31,13 @@ func (userMapper *UserMapper) SaveUser(user *model.User) (int64, error) {
 
 // UpdateUserUsernameById 根据id更新用户名
 func (userMapper *UserMapper) UpdateUserUsernameById(id int64, username string) error {
-	_, err := model.DB.Exec("UPDATE `user` SET `username` = ? WHERE `id` = ?", username, id)
+	_, err := userMapper.db.Exec("UPDATE `user` SET `username` = ? WHERE `id` = ?", username, id)
 	return err
 }
 
 // UpdateUserProfilePictureById 根据id更新用户头像
 func (userMapper *UserMapper) UpdateUserProfilePictureById(id int64, profilePicture string) error {
-	_, err := model.DB.Exec("UPDATE `user` SET `profile_picture` = ? WHERE `id` = ?", profilePicture, id)
+	_, err := userMapper.db.Exec("UPDATE `user` SET `profile_picture` = ? WHERE `id` = ?", profilePicture, id)
 	return err
 }
 
@@ -40,7 +47,7 @@ func (userMapper *UserMapper) UpdateUserProfilePictureById(id int64, profilePict
 // 为了保证性能，用户名的大小写不敏感
 func (userMapper *UserMapper) CheckUserUsernameExist(username string) (bool, error) {
 	var count int64
-	err := model.DB.QueryRow("SELECT COUNT(`username`) FROM `user` WHERE `username` = ?", username).Scan(&count)
+	err := userMapper.db.QueryRow("SELECT COUNT(`username`) FROM `user` WHERE `username` = ?", username).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -50,7 +57,7 @@ func (userMapper *UserMapper) CheckUserUsernameExist(username string) (bool, err
 // QueryUserById 根据id查询用户信息
 func (userMapper *UserMapper) QueryUserById(id int64) (user *model.User, err error) {
 	user = new(model.User)
-	err = model.DB.QueryRow("SELECT `username`, `password`, `profile_picture` FROM `user` WHERE id = ?", id).Scan(&user.Username, &user.Password, &user.ProfilePicture)
+	err = userMapper.db.QueryRow("SELECT `username`, `password`, `profile_picture` FROM `user` WHERE id = ?", id).Scan(&user.Username, &user.Password, &user.ProfilePicture)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +67,7 @@ func (userMapper *UserMapper) QueryUserById(id int64) (user *model.User, err err
 // QueryUserByUsername 根据username查询用户信息
 func (userMapper *UserMapper) QueryUserByUsername(username string) (user *model.User, err error) {
 	user = new(model.User)
-	err = model.DB.QueryRow("SELECT `id`, `password`, `profile_picture` FROM `user` WHERE `username` = ?", username).Scan(&user.Id, &user.Password, &user.ProfilePicture)
+	err = userMapper.db.QueryRow("SELECT `id`, `password`, `profile_picture` FROM `user` WHERE `username` = ?", username).Scan(&user.Id, &user.Password, &user.ProfilePicture)
 	if err != nil {
 		return nil, err
 	}
