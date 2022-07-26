@@ -84,7 +84,7 @@ func (f *LogFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 // LogFile 日志输出文件
 func LogFile(file string) *os.File {
 	dir, _ := os.Getwd()
-	logDirPath := dir + "/logger/" + file
+	logDirPath := dir + "/log/" + file
 	_, err := os.Stat(logDirPath)
 	if os.IsNotExist(err) {
 		if err := os.MkdirAll(logDirPath, 0777); err != nil {
