@@ -6,93 +6,94 @@
 
 | client | QPS     |
 | ------ | ------- |
-| 200    | 5623.24 |
-| 1000   | 5326.15 |
-| 1500   | 4152.13 |
-| 2000   | 3622.45 |
+| 200    | 5049.55 |
+| 1000   | 7441.03 |
+| 1500   | 8038.22 |
+| 2000   | 7199.87 |
 
 
 
 #### client: 200
 
 ```shell
-$ wrk -t6 -c200 -d10s --latency -s login.lua "http://127.0.0.1:10000/login" 
-Running 10s test @ http://127.0.0.1:10000/login
-  6 threads and 200 connections
+$ wrk -t6 -c500 -d10s --latency -s login.lua "http://127.0.0.1:10001/login" 
+Running 10s test @ http://127.0.0.1:10001/login
+  6 threads and 500 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    35.10ms    5.80ms  91.40ms   79.81%
-    Req/Sec     0.94k   111.79     1.20k    69.33%
+    Latency    37.02ms   32.36ms 372.53ms   76.41%
+    Req/Sec     1.37k   425.78     2.63k    69.89%
   Latency Distribution
-     50%   34.78ms
-     75%   37.46ms
-     90%   41.31ms
-     99%   52.17ms
-  56357 requests in 10.02s, 27.94MB read
-  Socket errors: connect 0, read 56, write 0, timeout 0
-Requests/sec:   5623.24
-Transfer/sec:      2.79MB
-
+     50%   29.25ms
+     75%   53.04ms
+     90%   77.05ms
+     99%  144.91ms
+  51018 requests in 10.10s, 25.04MB read
+  Socket errors: connect 0, read 698, write 0, timeout 0
+Requests/sec:   5049.55
+Transfer/sec:      2.48MB
 ```
 
 #### client: 1000
 
 ```shell
-$ wrk -t6 -c1000 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
-Running 10s test @ http://127.0.0.1:10000/login
+$ wrk -t6 -c1000 -d10s --latency -s login.lua "http://127.0.0.1:10001/login" 
+Running 10s test @ http://127.0.0.1:10001/login
   6 threads and 1000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   180.29ms   99.42ms   1.13s    64.97%
-    Req/Sec     0.92k   526.45     2.43k    64.08%
+    Latency    58.78ms   42.35ms 360.99ms   65.25%
+    Req/Sec     1.45k   420.87     3.13k    75.97%
   Latency Distribution
-     50%  172.72ms
-     75%  228.45ms
-     90%  321.70ms
-     99%  487.72ms
-  53804 requests in 10.10s, 25.28MB read
-  Socket errors: connect 0, read 3251, write 0, timeout 0
-Requests/sec:   5326.15
-Transfer/sec:      2.50MB
+     50%   52.74ms
+     75%   89.38ms
+     90%  109.73ms
+     99%  181.07ms
+  75151 requests in 10.10s, 36.89MB read
+  Socket errors: connect 0, read 3282, write 0, timeout 0
+Requests/sec:   7441.03
+Transfer/sec:      3.65MB
 ```
 
 #### client: 1500
 
 ```shell
-$ wrk -t6 -c1500 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
-Running 10s test @ http://127.0.0.1:10000/login
+$ wrk -t6 -c1500 -d10s --latency -s login.lua "http://127.0.0.1:10001/login" 
+Running 10s test @ http://127.0.0.1:10001/login
   6 threads and 1500 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   328.51ms  115.68ms   1.10s    84.69%
-    Req/Sec   718.34    358.47     1.58k    64.59%
+    Latency    97.05ms   55.44ms 534.52ms   70.83%
+    Req/Sec     1.38k   433.63     2.52k    78.67%
   Latency Distribution
-     50%  302.30ms
-     75%  342.56ms
-     90%  450.89ms
-     99%  770.59ms
-  41790 requests in 10.06s, 20.46MB read
-  Socket errors: connect 0, read 7925, write 0, timeout 0
-Requests/sec:   4152.13
-Transfer/sec:      2.03MB
+     50%   91.79ms
+     75%  136.86ms
+     90%  159.32ms
+     99%  304.38ms
+  81106 requests in 10.09s, 39.82MB read
+  Socket errors: connect 0, read 8085, write 0, timeout 0
+Requests/sec:   8038.22
+Transfer/sec:      3.95MB
 ```
 
 #### client: 2000
 
 ```shell
-$  wrk -t6 -c2000 -d10s --latency -s login.lua "http://127.0.0.1:10000/login"
-Running 10s test @ http://127.0.0.1:10000/login
+$ wrk -t6 -c2000 -d10s --latency -s login.lua "http://127.0.0.1:10001/login" 
+Running 10s test @ http://127.0.0.1:10001/login
   6 threads and 2000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   432.74ms  108.63ms   1.05s    84.48%
-    Req/Sec   666.14    393.20     1.52k    62.03%
+    Latency   133.32ms   90.27ms 870.32ms   74.75%
+    Req/Sec     1.26k   495.81     2.19k    73.39%
   Latency Distribution
-     50%  396.85ms
-     75%  486.51ms
-     90%  568.72ms
-     99%  807.69ms
-  36546 requests in 10.09s, 17.98MB read
-  Socket errors: connect 0, read 16909, write 0, timeout 0
-Requests/sec:   3622.45
-Transfer/sec:      1.78MB
+     50%  127.34ms
+     75%  189.59ms
+     90%  222.17ms
+     99%  468.09ms
+  72494 requests in 10.07s, 35.59MB read
+  Socket errors: connect 0, read 18032, write 0, timeout 13
+Requests/sec:   7199.87
+Transfer/sec:      3.53MB
 ```
+
+
 
 
 
