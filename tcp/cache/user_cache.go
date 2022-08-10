@@ -12,11 +12,11 @@ import (
 // @Email  zikang.chen@shopee.com
 // @Since  2022-02-15
 
-// UserTokenKeyPrefix  用户token存储的key
-// UserTokenTimeout   用户token过期时间
 const (
+	// UserTokenKeyPrefix  用户token存储的key
 	UserTokenKeyPrefix = "entry:user:token:"
-	UserTokenTimeout   = time.Hour * 24
+	// UserTokenTimeout   用户token过期时间
+	UserTokenTimeout = time.Hour * 24
 )
 
 // UserCache 用户缓存操作

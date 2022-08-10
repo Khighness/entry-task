@@ -25,7 +25,7 @@ func CorsMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		// 允许访问所有域
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		// 允许header值
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type,AccessToken,X-CSRF-Token, Authorization, Token")
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type, AccessToken, X-CSRF-Token, Authorization, Token")
 		// 允许携带cookie
 		w.Header().Add("Access-Control-Allow-Credentials", "true")
 		// 允许请求方法
