@@ -22,7 +22,7 @@ func TestEncryptAndVerifyByBCR(t *testing.T) {
 	fmt.Printf("encrypt:%s, len:%d\n", hash, len(hash))
 	assert.Nil(t, err)
 	verifyStartTime := time.Now()
-	result := VerifyPassByMD5(pass, hash)
+	result := VerifyPassByBCR(pass, hash)
 	fmt.Println("verify time:", time.Since(verifyStartTime))
 	assert.Equal(t, true, result)
 }
