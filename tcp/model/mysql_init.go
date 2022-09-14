@@ -26,7 +26,7 @@ func InitMySQL() {
 
 // ConnectMySQL 连接到MySQL
 func ConnectMySQL(mysqlCfg *config.MySQLConfig) *sql.DB {
-	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", mysqlCfg.User, mysqlCfg.Pass, mysqlCfg.Host, mysqlCfg.Port, mysqlCfg.Name, "charset=utf8&parseTime=true")
+	url := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", mysqlCfg.User, mysqlCfg.Pass, mysqlCfg.Host, mysqlCfg.Port, mysqlCfg.Name, "charset=utf8mb4&parseTime=true")
 	db, err := sql.Open("mysql", url)
 	if err != nil {
 		logging.Log.Fatalf("Wrong configuration of [MySQL] in config file: %s", err)
