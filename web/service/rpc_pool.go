@@ -48,7 +48,7 @@ type RpcPoolConfig struct {
 	MaxIdleTime  time.Duration
 }
 
-// RpcPoolStats grpc连接池状态
+// RpcPoolStats RPC连接池状态
 type RpcPoolStats struct {
 	MaxOpenCount int
 	MaxIdleCount int
@@ -66,7 +66,7 @@ type RpcPoolStats struct {
 // RpcConn 封装RPC客户端
 type RpcConn struct {
 	createdAt  time.Time   // 当前连接创建的时间
-	client     *rpc.Client // grpc客户端
+	client     *rpc.Client // RPC客户端
 	inUse      bool        // 标识当前连接的状态，是否正在使用
 	returnedAt time.Time   // 当前连接创建或者归还的时间
 }
@@ -83,7 +83,7 @@ const (
 
 var nowFunc func() time.Time = time.Now
 var errBadConn error = errors.New("bad connection")
-var errPoolClosed error = errors.New("grpc is closed")
+var errPoolClosed error = errors.New("RPC is closed")
 
 // nextRequestKeyLocked 返回下一个获取连接的请求的标识
 func (rp *RpcPool) nextRequestKeyLocked() uint64 {
@@ -427,7 +427,7 @@ func (rc *RpcConn) expired(timeout time.Duration) bool {
 	return rc.createdAt.Add(timeout).Before(nowFunc())
 }
 
-// NewRpcPool 构造一个grpc连接池
+// NewRpcPool 构造一个RPC连接池
 func NewRpcPool(connector RpcConnector, config *RpcPoolConfig) *RpcPool {
 	ctx, cancel := context.WithCancel(context.Background())
 	rp := &RpcPool{
