@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"database/sql"
+
 	"github.com/Khighness/entry-task/tcp/model"
 )
 
